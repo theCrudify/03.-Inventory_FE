@@ -19,7 +19,7 @@ export const DICT = {
     'common.back': 'Kembali',
     'common.print': 'Cetak',
     'common.printPdf': 'Cetak / Simpan PDF',
-    'common.exportCsv': 'Ekspor CSV',
+    'common.exportXlsx': 'Ekspor XLSX',
     'common.loading': 'Memuat data…',
     'common.preparingData': 'Menyiapkan data…',
     'common.preparingApp': 'Menyiapkan aplikasi…',
@@ -213,6 +213,11 @@ export const DICT = {
     'report.out': 'Pengeluaran',
     'report.adj': 'Penyesuaian',
     'report.closing': 'Saldo Akhir',
+    'report.colNo': 'No',
+    'report.colStockOpname': 'Stock Opname',
+    'report.colDiff': 'Selisih',
+    'report.colNote': 'Keterangan',
+    'report.match': 'Sesuai',
 
     // Audit & Users & Company & Account
     'audit.title': 'Audit Log',
@@ -333,7 +338,7 @@ export const DICT = {
     'common.back': 'Back',
     'common.print': 'Print',
     'common.printPdf': 'Print / Save PDF',
-    'common.exportCsv': 'Export CSV',
+    'common.exportXlsx': 'Export XLSX',
     'common.loading': 'Loading data…',
     'common.preparingData': 'Preparing data…',
     'common.preparingApp': 'Preparing workspace…',
@@ -527,6 +532,11 @@ export const DICT = {
     'report.out': 'Outbound',
     'report.adj': 'Adjustment',
     'report.closing': 'Closing',
+    'report.colNo': 'No',
+    'report.colStockOpname': 'Stock Count',
+    'report.colDiff': 'Difference',
+    'report.colNote': 'Note',
+    'report.match': 'Matched',
 
     // Audit & Users & Company & Account
     'audit.title': 'Audit Log',

@@ -113,8 +113,31 @@ html.dark .skeleton::after { background: linear-gradient(90deg, transparent, rgb
 }
 
 @media print {
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4 portrait; margin: 12mm; }
   html, body { background: #ffffff !important; color: #000000 !important; }
-  .page-enter { animation: none; }
+  .page-enter, .anim-pop, .anim-fade { animation: none; }
+  .skeleton::after { animation: none; }
   .route-progress { display: none; }
+  .print-root, .print-root * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-sheet {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 !important;
+    box-shadow: none;
+    font-size: 9pt;
+    line-height: 1.35;
+  }
+  .print-sheet table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+  .print-sheet th, .print-sheet td { overflow-wrap: break-word; }
+  .print-kv td:first-child { width: 35%; }
+  .print-items th:nth-child(1) { width: 6%; }
+  .print-items th:nth-child(2) { width: 16%; }
+  .print-items th:nth-child(3) { width: 34%; }
+  .print-items th:nth-child(4) { width: 13%; }
+  .print-items th:nth-child(5) { width: 14%; }
+  .print-items th:nth-child(6) { width: 17%; }
+  .print-sheet thead { display: table-header-group; }
+  .print-sheet tr, .print-sheet .print-block { break-inside: avoid; page-break-inside: avoid; }
+  .print-watermark { position: fixed; }
 }

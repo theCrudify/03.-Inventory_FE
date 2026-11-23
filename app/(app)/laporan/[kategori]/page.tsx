@@ -8,6 +8,7 @@ import { date, isoDate as iso, qty } from '@/lib/format';
 import { useMeta } from '@/lib/meta';
 import { usePrefs } from '@/lib/prefs';
 import { useDebouncedValue, useFetch } from '@/lib/use-fetch';
+import { downloadXlsx } from '@/lib/xlsx';
 
 type Row = { itemId: number; code: string; name: string; uom: string; hsCode: string | null; saldoAwal: number; pemasukan: number; pengeluaran: number; penyesuaian: number; saldoAkhir: number };
 
@@ -42,18 +43,13 @@ export default function MutasiPage() {
     else { setSortBy(key); setSortDir('asc'); }
   };
 
-  async function exportCsv() {
+  async function exportXlsx() {
     setExporting(true);
     try {
       const all = await api<Row[]>(`/reports/mutasi${qs(queryParams)}`);
-      const head = ['No', 'Kode Barang', 'Nama Barang', 'Satuan', 'Saldo Awal', 'Pemasukan', 'Pengeluaran', 'Penyesuaian', 'Saldo Akhir', 'Stock Opname', 'Selisih', 'Keterangan'];
-      const body = all.map((r, i) => [i + 1, r.code, r.name, r.uom, r.saldoAwal, r.pemasukan, r.pengeluaran, r.penyesuaian, r.saldoAkhir, r.saldoAkhir, 0, 'Sesuai']);
-      const csv = [head, ...body].map((l) => l.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(',')).join('\n');
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
-      a.download = `mutasi-${cfg.slug}-${from}_${to}.csv`;
-      a.click();
-      URL.revokeObjectURL(a.href);
+      const head = [t('report.colNo'), t('report.code'), t('report.name'), t('report.uom'), t('report.opening'), t('report.in'), t('report.out'), t('report.adj'), t('report.closing'), t('report.colStockOpname'), t('report.colDiff'), t('report.colNote')];
+      const body = all.map((r, i) => [i + 1, r.code, r.name, r.uom, r.saldoAwal, r.pemasukan, r.pengeluaran, r.penyesuaian, r.saldoAkhir, r.saldoAkhir, 0, t('report.match')]);
+      downloadXlsx(`mutasi-${cfg.slug}-${from}_${to}.xlsx`, cfg.report, [head, ...body]);
     } catch (e) {
       toast((e as Error).message, 'err');
     } finally {
@@ -96,9 +92,9 @@ export default function MutasiPage() {
             />
           }
           actions={
-            <Button variant="secondary" onClick={exportCsv} loading={exporting} disabled={!data?.total}>
+            <Button variant="secondary" onClick={exportXlsx} loading={exporting} disabled={!data?.total}>
               <Download className="size-4" />
-              {t('common.exportCsv')}
+              {t('common.exportXlsx')}
             </Button>
           }
           hasActiveFilters={hasFilters}
