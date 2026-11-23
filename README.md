@@ -14,7 +14,7 @@ Perusahaan, mitra, dan transaksinya fiktif. Respon Bea Cukai (CEISA) disimulasik
 - Sumber dokumen: Purchase Order dan Commercial Invoice
 - 9 jenis dokumen BC (2.3, 2.5, 2.6.1, 2.6.2, 2.7 masuk/keluar, 3.0, 4.0, 4.1): buat dari PO/invoice,
   kirim ke CEISA, pantau status secara live (stepper + payload respon), perhitungan pungutan, cetak/PDF
-- Laporan mutasi per kategori barang (ekspor CSV)
+- Laporan mutasi per kategori barang (ekspor XLSX)
 - Master data: barang (dengan saldo), mitra, referensi dan tarif (HS, kurs, pelabuhan, dll.)
 
 ## Data-driven
@@ -31,8 +31,31 @@ echo 'NEXT_PUBLIC_API_URL=http://localhost:8787' > .env.local   # API harus jala
 npm run dev        # http://localhost:3000
 ```
 
-## Deploy gratis (Vercel)
+## Deploy (Vercel)
 
-1. Push folder ini ke GitHub, lalu di [vercel.com](https://vercel.com) pilih **Add New → Project** dan import repo-nya.
-2. Isi environment variable `NEXT_PUBLIC_API_URL` = URL Workers API (`https://inventory-api.jidanfatahillah2003.workers.dev`).
-3. Deploy. Setelah itu masukkan URL Vercel ke `CORS_ORIGINS` di `wrangler.toml` API, lalu jalankan `npm run deploy` ulang di folder API.
+**Penting:** `git push` saja tidak men-deploy sampai repo dihubungkan ke Vercel (opsi B). Deploy yang berjalan sekarang memakai CLI.
+
+Variabel yang dibutuhkan: `NEXT_PUBLIC_API_URL` (alamat API, tanpa garis miring akhir). Nilainya ikut tertanam saat build,
+jadi mengubahnya berarti deploy ulang. API hanya menerima origin yang terdaftar di `CORS_ORIGINS` (`wrangler.toml` di folder API).
+
+### A. CLI (dipakai sekarang)
+```bash
+npx vercel login                              # sekali saja
+npx vercel link                               # sekali saja, pilih/buat project
+npx vercel env add NEXT_PUBLIC_API_URL production   # sekali saja, isi URL Worker
+npx vercel deploy --prod                      # setiap kali ingin merilis
+```
+`npx vercel deploy` tanpa `--prod` membuat preview. Preview berada di domain lain, jadi API akan menolaknya (CORS)
+kecuali domainnya ditambahkan ke `CORS_ORIGINS`.
+
+### B. Otomatis lewat push
+1. Push folder ini ke GitHub.
+2. [vercel.com](https://vercel.com), **Add New, Project**, import repo, tambahkan `NEXT_PUBLIC_API_URL`.
+3. Setelahnya, push ke `main` men-deploy ke produksi, dan branch lain menjadi preview.
+
+### Setelah domain berubah
+Masukkan URL Vercel ke `CORS_ORIGINS` di `wrangler.toml` API, lalu `npm run deploy` di folder API.
+
+### Urutan jika backend dan frontend berubah bersamaan
+1. API: `db:push` (jika skema berubah), lalu `npm run deploy`.
+2. Frontend: `npx vercel deploy --prod`.
