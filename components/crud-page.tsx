@@ -192,7 +192,6 @@ export function CrudPage<T extends { id: number }>({
           {visibleFields.map((fd, idx) => (
             <Field
               key={fd.name}
-              index={idx + 1}
               label={fd.label}
               required={fd.required && !(fd.createOnly && editing !== 'new')}
               error={errors[fd.name]}

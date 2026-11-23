@@ -165,7 +165,7 @@ export function MasterCodePage<T extends { code: string }>({ title, desc, path, 
         <form id="master-code-form" onSubmit={save} className="grid gap-3 sm:grid-cols-2">
           {formError && <div className="sm:col-span-2"><ErrorBox text={formError} /></div>}
           {fields.map((f, idx) => (
-            <Field key={f.name} index={idx + 1} label={f.label} required={f.required} error={errors[f.name]} hint={f.hint} className={f.full ? 'sm:col-span-2' : ''}>
+            <Field key={f.name} label={f.label} required={f.required} error={errors[f.name]} hint={f.hint} className={f.full ? 'sm:col-span-2' : ''}>
               {f.type === 'select'
                 ? <Select value={form[f.name] ?? ''} onChange={(e) => setForm({ ...form, [f.name]: e.target.value })} options={f.options ?? []} required={f.required} />
                 : f.type === 'boolean'

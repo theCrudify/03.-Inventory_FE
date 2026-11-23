@@ -118,9 +118,6 @@ export function Field({
   return (
     <div className={cx('space-y-1.5', className)}>
       <label className="flex items-center gap-1.5 text-[13px] font-medium text-slate-700 dark:text-slate-300">
-        {index !== undefined && (
-          <span className="font-mono text-[11px] font-medium tabular-nums text-slate-400 dark:text-slate-500">{index}</span>
-        )}
         <span>{label}{required && <span className="ml-0.5 text-red-500">*</span>}</span>
       </label>
       {children}
@@ -255,16 +252,9 @@ export const CardHeader = ({
   title: string; desc?: string; action?: React.ReactNode; index?: number | string;
 }) => (
   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-5 py-3.5 dark:border-slate-800">
-    <div className="flex min-w-0 items-center gap-2.5">
-      {index !== undefined && (
-        <span className="grid h-6 min-w-6 place-items-center rounded-md bg-slate-100 px-1 font-mono text-[11px] font-medium tabular-nums text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          {String(index).padStart(2, '0')}
-        </span>
-      )}
-      <div className="min-w-0">
-        <h3 className="text-sm font-semibold tracking-[-0.01em] text-slate-900 dark:text-slate-100">{title}</h3>
-        {desc && <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{desc}</p>}
-      </div>
+    <div className="min-w-0">
+      <h3 className="text-sm font-semibold tracking-[-0.01em] text-slate-900 dark:text-slate-100">{title}</h3>
+      {desc && <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{desc}</p>}
     </div>
     {action && <div className="flex items-center gap-2">{action}</div>}
   </div>
@@ -511,6 +501,8 @@ export function Table<T extends { id: number | string }>({
                       className={cx(
                         'group -mx-1.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors hover:bg-slate-200/50 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100',
                         isSorted && 'text-slate-900 dark:text-slate-100',
+                        al === 'right' && 'ml-auto flex-row-reverse text-right',
+                        al === 'center' && 'mx-auto',
                       )}
                     >
                       <span>{c.label}</span>

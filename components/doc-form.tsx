@@ -9,7 +9,7 @@ import { usePrefs } from '@/lib/prefs';
 import type { CustomsDoc, Header, TradeDoc } from '@/lib/types';
 import { useFetch } from '@/lib/use-fetch';
 import { useItems, usePartners } from '@/lib/use-options';
-import { Button, Card, CardHeader, ErrorBox, Field, Input, PageHeader, Select, toast } from './ui';
+import { Button, Card, CardHeader, DateField, ErrorBox, Field, Input, PageHeader, Select, toast } from './ui';
 
 type Line = { itemId: string; hsCode: string; qty: string; unitPrice: string };
 type Form = { partnerId: string; tradeDocId: string; officeCode: string; currency: string; kurs: string; header: Header; lines: Line[] };
@@ -105,8 +105,6 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
     { id: 'sec-5', n: bc.requiresGuarantee ? 5 : 4, title: t('form.secSupporting') },
     { id: 'sec-6', n: bc.requiresGuarantee ? 6 : 5, title: t('form.secItems') },
   ];
-  const suppIdx = bc.requiresGuarantee ? 5 : 4;
-  const itemsIdx = bc.requiresGuarantee ? 6 : 5;
 
   return (
     <form onSubmit={save}>
@@ -117,54 +115,54 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <Card id="sec-1">
-            <CardHeader index={1} title={t('form.secGeneral')} />
+            <CardHeader title={t('form.secGeneral')} />
             <div className="grid gap-3 p-5 sm:grid-cols-2">
-              <Field index="1.1" label={`${meta.label('jenis_sumber', bc.sourceDoc)} (${t('common.optional')})`} hint={t('form.autoFillHint')} className="sm:col-span-2">
+              <Field label={`${meta.label('jenis_sumber', bc.sourceDoc)} (${t('common.optional')})`} hint={t('form.autoFillHint')} className="sm:col-span-2">
                 <Select value={f.tradeDocId} onChange={(e) => applyTrade(e.target.value)} placeholder={t('form.noSourceDoc')}
                   options={trade.map((tr) => ({ value: tr.id, label: `${tr.number} · ${tr.partnerName}` }))} />
               </Field>
-              <Field index="1.2" label={`${dir.partyLabel} (${meta.label('jenis_mitra', bc.partnerKind)})`} required>
+              <Field label={`${dir.partyLabel} (${meta.label('jenis_mitra', bc.partnerKind)})`} required>
                 <Select required value={f.partnerId} onChange={(e) => setF({ ...f, partnerId: e.target.value })} placeholder={t('form.selectPartner')} options={partners.map((p) => ({ value: p.id, label: `${p.name} (${p.countryCode})` }))} />
               </Field>
-              <Field index="1.3" label={t('doc.customsOffice')} required><Select required value={f.officeCode} onChange={(e) => setF({ ...f, officeCode: e.target.value })} options={opt('kantor')} /></Field>
-              <Field index="1.4" label={t('form.currency')} required><Select required value={f.currency} onChange={(e) => setCurrency(e.target.value)} options={opt('valuta')} /></Field>
-              <Field index="1.5" label={t('form.kurs')} required hint={t('form.kursHint')}><Input required type="number" step="any" min="0" value={f.kurs} onChange={(e) => setF({ ...f, kurs: e.target.value })} /></Field>
+              <Field label={t('doc.customsOffice')} required><Select required value={f.officeCode} onChange={(e) => setF({ ...f, officeCode: e.target.value })} options={opt('kantor')} /></Field>
+              <Field label={t('form.currency')} required><Select required value={f.currency} onChange={(e) => setCurrency(e.target.value)} options={opt('valuta')} /></Field>
+              <Field label={t('form.kurs')} required hint={t('form.kursHint')}><Input required type="number" step="any" min="0" value={f.kurs} onChange={(e) => setF({ ...f, kurs: e.target.value })} /></Field>
               {bc.international
-                ? <Field index="1.6" label={t('form.incoterm')}><Select value={h.incoterm ?? ''} onChange={(e) => setH({ incoterm: e.target.value })} placeholder="-" options={opt('incoterm')} /></Field>
-                : <Field index="1.6" label={t('form.destDelivery')} className="sm:col-span-2"><Input value={h.tujuanPengiriman ?? ''} onChange={(e) => setH({ tujuanPengiriman: e.target.value })} /></Field>}
+                ? <Field label={t('form.incoterm')}><Select value={h.incoterm ?? ''} onChange={(e) => setH({ incoterm: e.target.value })} placeholder="-" options={opt('incoterm')} /></Field>
+                : <Field label={t('form.destDelivery')} className="sm:col-span-2"><Input value={h.tujuanPengiriman ?? ''} onChange={(e) => setH({ tujuanPengiriman: e.target.value })} /></Field>}
             </div>
           </Card>
 
           <Card id="sec-2">
-            <CardHeader index={2} title={t('form.secTransport')} />
+            <CardHeader title={t('form.secTransport')} />
             <div className="grid gap-3 p-5 sm:grid-cols-2">
-              <Field index="2.1" label={t('form.transportMode')}><Select value={h.caraAngkut ?? ''} onChange={(e) => setH({ caraAngkut: e.target.value })} options={opt('cara_angkut', false)} /></Field>
-              <Field index="2.2" label={t('form.carrierName')} required hint={t('form.carrierHint')}>
+              <Field label={t('form.transportMode')}><Select value={h.caraAngkut ?? ''} onChange={(e) => setH({ caraAngkut: e.target.value })} options={opt('cara_angkut', false)} /></Field>
+              <Field label={t('form.carrierName')} required hint={t('form.carrierHint')}>
                 <Input value={h.pengangkut ?? ''} onChange={(e) => setH({ pengangkut: e.target.value })} />
               </Field>
               {transport.usesPlate
-                ? <Field index="2.3" label={t('form.plateNo')}><Input value={h.nomorPolisi ?? ''} onChange={(e) => setH({ nomorPolisi: e.target.value })} /></Field>
-                : <Field index="2.3" label={t('form.voyageNo')}><Input value={h.nomorVoyage ?? ''} onChange={(e) => setH({ nomorVoyage: e.target.value })} /></Field>}
+                ? <Field label={t('form.plateNo')}><Input value={h.nomorPolisi ?? ''} onChange={(e) => setH({ nomorPolisi: e.target.value })} /></Field>
+                : <Field label={t('form.voyageNo')}><Input value={h.nomorVoyage ?? ''} onChange={(e) => setH({ nomorVoyage: e.target.value })} /></Field>}
               {bc.international && <>
-                <Field index="2.4" label={dir.countryLabel}>
+                <Field label={dir.countryLabel}>
                   <Select value={String((h as Record<string, unknown>)[dir.countryField] ?? '')} placeholder="-" options={opt('negara')}
                     onChange={(e) => setH({ [dir.countryField]: e.target.value } as Partial<Header>)} />
                 </Field>
                 {transport.usesPort && <>
-                  <Field index="2.5" label={t('form.loadPort')}><Select value={h.pelabuhanMuat ?? ''} onChange={(e) => setH({ pelabuhanMuat: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
-                  <Field index="2.6" label={t('form.destPort')}><Select value={h.pelabuhanTujuan ?? ''} onChange={(e) => setH({ pelabuhanTujuan: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
+                  <Field label={t('form.loadPort')}><Select value={h.pelabuhanMuat ?? ''} onChange={(e) => setH({ pelabuhanMuat: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
+                  <Field label={t('form.destPort')}><Select value={h.pelabuhanTujuan ?? ''} onChange={(e) => setH({ pelabuhanTujuan: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
                 </>}
               </>}
             </div>
           </Card>
 
           <Card id="sec-3">
-            <CardHeader index={3} title={t('form.secPackaging')} />
+            <CardHeader title={t('form.secPackaging')} />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-5">
-              <Field index="3.1" label={t('form.packCount')}><Input type="number" min="0" value={h.kemasan?.jumlah ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jumlah: Number(e.target.value) } })} /></Field>
-              <Field index="3.2" label={t('form.packType')}><Select value={h.kemasan?.jenis ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jenis: e.target.value } })} options={opt('kemasan')} /></Field>
-              <Field index="3.3" label={t('form.bruto')}><Input type="number" step="any" min="0" value={h.bruto ?? ''} onChange={(e) => setH({ bruto: Number(e.target.value) })} /></Field>
-              <Field index="3.4" label={t('form.netto')}><Input type="number" step="any" min="0" value={h.netto ?? ''} onChange={(e) => setH({ netto: Number(e.target.value) })} /></Field>
+              <Field label={t('form.packCount')}><Input type="number" min="0" value={h.kemasan?.jumlah ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jumlah: Number(e.target.value) } })} /></Field>
+              <Field label={t('form.packType')}><Select value={h.kemasan?.jenis ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jenis: e.target.value } })} options={opt('kemasan')} /></Field>
+              <Field label={t('form.bruto')}><Input type="number" step="any" min="0" value={h.bruto ?? ''} onChange={(e) => setH({ bruto: Number(e.target.value) })} /></Field>
+              <Field label={t('form.netto')}><Input type="number" step="any" min="0" value={h.netto ?? ''} onChange={(e) => setH({ netto: Number(e.target.value) })} /></Field>
             </div>
             {transport.usesContainer && (
               <div className="border-t border-slate-100 px-5 py-4 dark:border-slate-800">
@@ -199,19 +197,19 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
 
           {bc.requiresGuarantee && (
             <Card id="sec-4">
-              <CardHeader index={4} title={t('form.secGuarantee')} desc={t('form.guaranteeDesc', { label: bc.label })} />
+              <CardHeader title={t('form.secGuarantee')} desc={t('form.guaranteeDesc', { label: bc.label })} />
               <div className="grid gap-3 p-5 sm:grid-cols-2">
-                <Field index="4.1" label={t('form.guaranteeType')}><Select value={h.jaminan?.jenis ?? ''} placeholder="-" onChange={(e) => setH({ jaminan: { ...h.jaminan, jenis: e.target.value } })} options={opt('jenis_jaminan', false)} /></Field>
-                <Field index="4.2" label={t('form.guaranteeNo')}><Input value={h.jaminan?.nomor ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nomor: e.target.value } })} /></Field>
-                <Field index="4.3" label={t('form.guarantor')}><Input value={h.jaminan?.penjamin ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, penjamin: e.target.value } })} /></Field>
-                <Field index="4.4" label={t('form.guaranteeValue')}><Input type="number" min="0" value={h.jaminan?.nilai ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nilai: Number(e.target.value) } })} /></Field>
-                <Field index="4.5" label={t('form.dueDate')}><Input type="date" value={h.jaminan?.jatuhTempo ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, jatuhTempo: e.target.value } })} /></Field>
+                <Field label={t('form.guaranteeType')}><Select value={h.jaminan?.jenis ?? ''} placeholder="-" onChange={(e) => setH({ jaminan: { ...h.jaminan, jenis: e.target.value } })} options={opt('jenis_jaminan', false)} /></Field>
+                <Field label={t('form.guaranteeNo')}><Input value={h.jaminan?.nomor ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nomor: e.target.value } })} /></Field>
+                <Field label={t('form.guarantor')}><Input value={h.jaminan?.penjamin ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, penjamin: e.target.value } })} /></Field>
+                <Field label={t('form.guaranteeValue')}><Input type="number" min="0" value={h.jaminan?.nilai ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nilai: Number(e.target.value) } })} /></Field>
+                <Field label={t('form.dueDate')}><DateField value={h.jaminan?.jatuhTempo ?? ''} onChange={(v) => setH({ jaminan: { ...h.jaminan, jatuhTempo: v } })} /></Field>
               </div>
             </Card>
           )}
 
           <Card id="sec-5">
-            <CardHeader index={suppIdx} title={t('form.secSupporting')} action={<Button type="button" variant="ghost" size="sm" onClick={() => setH({ dokumen: [...docList, { jenis: first('jenis_dokumen'), nomor: '', tanggal: today() }] })}><Plus className="size-3.5" />{t('common.add')}</Button>} />
+            <CardHeader title={t('form.secSupporting')} action={<Button type="button" variant="ghost" size="sm" onClick={() => setH({ dokumen: [...docList, { jenis: first('jenis_dokumen'), nomor: '', tanggal: today() }] })}><Plus className="size-3.5" />{t('common.add')}</Button>} />
             <div className="space-y-2 p-5">
               {docList.map((d, i) => (
                 <div key={i} className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-2.5 sm:border-0 sm:bg-transparent sm:p-0 sm:grid sm:items-center sm:gap-2 sm:grid-cols-[2rem_13rem_1fr_9.5rem_auto]">
@@ -226,7 +224,7 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
                   </div>
                   <div className="space-y-1 sm:space-y-0 mt-2 sm:mt-0">
                     <span className="text-[11px] font-medium text-slate-500 sm:hidden">{t('trade.date')}</span>
-                    <Input aria-label={`Tanggal ${i + 1}`} type="date" value={d.tanggal} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, tanggal: e.target.value } : x)) })} />
+                    <DateField aria-label={`Tanggal ${i + 1}`} value={d.tanggal} onChange={(v) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, tanggal: v } : x)) })} />
                   </div>
                   <div className="flex justify-end pt-1 sm:pt-0">
                     <Button type="button" variant="ghost" size="sm" onClick={() => setH({ dokumen: docList.filter((_, j) => j !== i) })} aria-label={t('common.delete')}><Trash2 className="size-4 text-red-500" /></Button>
@@ -271,7 +269,7 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
         </div>
 
         <Card id="sec-6" className="lg:col-span-3">
-          <CardHeader index={itemsIdx} title={t('form.secItems')} desc={t('form.itemsDesc')}
+          <CardHeader title={t('form.secItems')} desc={t('form.itemsDesc')}
             action={
               <div className="flex items-center gap-2.5">
                 <span className="text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:inline">{f.lines.length} pos</span>
