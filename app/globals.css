@@ -9,23 +9,77 @@
 
 :root {
   color-scheme: light;
+  --color-slate-50: #f6f8f7;
+  --color-slate-100: #edf2f0;
+  --color-slate-200: #dae5e1;
+  --color-slate-300: #bed0ca;
+  --color-slate-400: #8ca29c;
+  --color-slate-500: #627871;
+  --color-slate-600: #4a605a;
+  --color-slate-700: #344945;
+  --color-slate-800: #223633;
+  --color-slate-900: #142623;
+  --color-slate-950: #0a1715;
+  --color-teal-50: #edfaf6;
+  --color-teal-100: #d3f2e9;
+  --color-teal-200: #abe4d5;
+  --color-teal-300: #74cdbd;
+  --color-teal-400: #43b2a3;
+  --color-teal-500: #20978a;
+  --color-teal-600: #107b71;
+  --color-teal-700: #0d625b;
+  --color-teal-800: #0c4e49;
+  --color-teal-900: #0b403c;
+  --color-teal-950: #062825;
 }
 
 html.dark {
   color-scheme: dark;
+  --color-slate-50: #e7f0ee;
+  --color-slate-100: #ccdad6;
+  --color-slate-200: #a9beb9;
+  --color-slate-300: #89a29d;
+  --color-slate-400: #93aaa5;
+  --color-slate-500: #76908b;
+  --color-slate-600: #59736e;
+  --color-slate-700: #415a55;
+  --color-slate-800: #243a37;
+  --color-slate-900: #172a27;
+  --color-slate-950: #0c1a18;
+  --color-teal-50: #e7faf4;
+  --color-teal-100: #c6f3e7;
+  --color-teal-200: #8fe8d5;
+  --color-teal-300: #56d3bf;
+  --color-teal-400: #2bb9a7;
+  --color-teal-500: #189b8d;
+  --color-teal-600: #127f74;
+  --color-teal-700: #0e665e;
+  --color-teal-800: #0b4f49;
+  --color-teal-900: #093e3a;
+  --color-teal-950: #052724;
 }
 
 body {
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--color-slate-50);
+  color: var(--color-slate-900);
   transition: background-color 0.2s ease, color 0.2s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 html.dark body {
-  background: #030712;
-  color: #f1f5f9;
+  background: var(--color-slate-950);
+  color: var(--color-slate-100);
+}
+
+::selection {
+  background: var(--color-teal-200);
+  color: var(--color-teal-950);
+}
+
+html.dark ::selection {
+  background: var(--color-teal-800);
+  color: var(--color-teal-50);
 }
 
 /* Refined custom scrollbar for tables and overflow containers */
@@ -37,17 +91,51 @@ html.dark body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: var(--color-slate-300);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.55);
+  background: var(--color-slate-400);
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.45);
+  background: var(--color-slate-700);
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.7);
+  background: var(--color-slate-600);
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.page-enter {
+  animation: pageEnter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.route-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 2px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--color-teal-500) 35%, var(--color-teal-300) 65%, transparent);
+}
+
+.route-progress.is-busy {
+  opacity: 1;
+  animation: routeSlide 1s ease-in-out infinite;
+}
+
+@keyframes routeSlide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter { animation: none; }
+  .route-progress.is-busy { animation: none; opacity: 0.8; transform: none; }
 }
 
 @keyframes progressSlide {
@@ -66,4 +154,6 @@ html.dark body {
     background: #ffffff !important;
     color: #000000 !important;
   }
+  .page-enter { animation: none; }
+  .route-progress { display: none; }
 }

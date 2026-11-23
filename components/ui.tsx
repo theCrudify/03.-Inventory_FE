@@ -83,11 +83,11 @@ export function SearchInput({
 }) {
   const { t } = usePrefs();
   return (
-    <div className={cx('relative flex items-center', className)}>
+    <div className={cx('relative flex w-full items-center min-w-[200px]', className)}>
       <Search className="pointer-events-none absolute left-2.5 size-3.5 text-slate-400 dark:text-slate-500" />
       <Input
         aria-label={ariaLabel ?? t('common.search')}
-        className="pl-8 pr-7"
+        className="w-full pl-8 pr-7 text-xs"
         placeholder={placeholder ?? t('common.searchPlaceholder')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -155,26 +155,32 @@ export function FilterDateRange({
 }) {
   const { t } = usePrefs();
   return (
-    <div className={cx('inline-flex flex-wrap sm:flex-nowrap items-center gap-1.5 rounded-lg border border-slate-200/90 bg-slate-50/50 p-1 dark:border-slate-800 dark:bg-slate-900/40', className)}>
-      <div className="flex items-center gap-1 px-1.5">
-        <Calendar className="size-3.5 text-slate-400 dark:text-slate-500" />
-        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{fromLabel ?? t('report.from')}:</span>
+    <div className={cx('inline-flex flex-wrap sm:flex-nowrap items-center gap-1.5', className)}>
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          {fromLabel ?? t('report.from')}:
+        </span>
+        <Input
+          type="date"
+          aria-label={fromLabel ?? t('report.from')}
+          value={from}
+          onChange={(e) => onFromChange(e.target.value)}
+          className="h-8.5 w-34 text-xs font-normal"
+        />
       </div>
-      <Input
-        type="date"
-        aria-label={fromLabel ?? t('report.from')}
-        value={from}
-        onChange={(e) => onFromChange(e.target.value)}
-        className="h-8 w-auto min-w-[130px] border-0 bg-white text-xs shadow-none hover:bg-slate-50 dark:bg-slate-800"
-      />
-      <span className="text-xs text-slate-400 dark:text-slate-500 px-0.5">{toLabel ?? t('report.to')}:</span>
-      <Input
-        type="date"
-        aria-label={toLabel ?? t('report.to')}
-        value={to}
-        onChange={(e) => onToChange(e.target.value)}
-        className="h-8 w-auto min-w-[130px] border-0 bg-white text-xs shadow-none hover:bg-slate-50 dark:bg-slate-800"
-      />
+      <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">—</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+          {toLabel ?? t('report.to')}:
+        </span>
+        <Input
+          type="date"
+          aria-label={toLabel ?? t('report.to')}
+          value={to}
+          onChange={(e) => onToChange(e.target.value)}
+          className="h-8.5 w-34 text-xs font-normal"
+        />
+      </div>
     </div>
   );
 }
@@ -200,12 +206,12 @@ export function FilterBar({
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   return (
-    <div className={cx('border-b border-slate-200/80 bg-white/70 px-4 py-2.5 backdrop-blur-xs transition-colors dark:border-slate-800/80 dark:bg-slate-900/60', className)}>
-      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
+    <div className={cx('border-b border-slate-200/80 bg-slate-50/50 px-3.5 py-2.5 dark:border-slate-800/80 dark:bg-slate-900/50', className)}>
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         {/* Left / Center controls */}
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
           {search && (
-            <div className="w-full sm:w-auto sm:min-w-[280px] sm:max-w-md lg:max-w-lg">
+            <div className="w-full sm:w-auto sm:min-w-[240px] sm:max-w-sm flex-1">
               {search}
             </div>
           )}
@@ -217,9 +223,25 @@ export function FilterBar({
             </div>
           )}
 
+          {/* Desktop Reset Button */}
+          {hasActiveFilters && onReset && (
+            <div className="hidden sm:block">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onReset}
+                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                <RotateCcw className="size-3.5" />
+                <span>{t('common.reset')}</span>
+              </Button>
+            </div>
+          )}
+
           {/* Mobile Filter Toggle Button */}
           {filters && (
-            <div className="flex items-center justify-between gap-2 sm:hidden">
+            <div className="flex items-center justify-between gap-2 sm:hidden w-full">
               <Button
                 type="button"
                 variant="secondary"
@@ -244,27 +266,11 @@ export function FilterBar({
               )}
             </div>
           )}
-
-          {/* Desktop Reset Button */}
-          {hasActiveFilters && onReset && (
-            <div className="hidden sm:block">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onReset}
-                className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-              >
-                <RotateCcw className="size-3.5" />
-                <span>{t('common.reset')}</span>
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Right Action buttons */}
         {actions && (
-          <div className="flex items-center gap-2 self-end lg:self-auto">
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
             {actions}
           </div>
         )}
@@ -272,7 +278,7 @@ export function FilterBar({
 
       {/* Mobile Collapsible Filter Drawer */}
       {filters && mobileFilterOpen && (
-        <div className="mt-3 grid gap-2.5 border-t border-slate-100 pt-3 dark:border-slate-800 sm:hidden animate-in fade-in duration-150">
+        <div className="mt-2.5 grid gap-2 border-t border-slate-200/60 pt-2.5 dark:border-slate-800 sm:hidden animate-in fade-in duration-150">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
             <span>{t('common.filterOptions')}</span>
             {hasActiveFilters && onReset && (
@@ -299,7 +305,7 @@ export const Card = ({ className, ...p }: React.HTMLAttributes<HTMLDivElement>) 
   <div
     {...p}
     className={cx(
-      'rounded-xl border border-slate-200/80 bg-white shadow-2xs transition-colors dark:border-slate-800/80 dark:bg-slate-900',
+      'overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-2xs transition-colors dark:border-slate-800/80 dark:bg-slate-900',
       className,
     )}
   />
@@ -378,29 +384,27 @@ export function PageHeader({
 }) {
   const { t } = usePrefs();
   return (
-    <div className="mb-2.5 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         {back && (
           <Link
             href={back}
-            className="group mb-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 transition-colors hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-400"
+            className="group mb-1 inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition-colors hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-400"
           >
-            <ChevronLeft className="size-3 transition-transform group-hover:-translate-x-0.5" />
+            <ChevronLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
             {t('common.back')}
           </Link>
         )}
-        <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
-          <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            {title}
-          </h1>
-          {desc && typeof desc === 'string' ? (
-            <span className="text-xs text-slate-500 dark:text-slate-400">· {desc}</span>
-          ) : desc ? (
-            <div className="text-xs text-slate-500 dark:text-slate-400">{desc}</div>
-          ) : null}
-        </div>
+        <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          {title}
+        </h1>
+        {desc && (
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 leading-normal">
+            {desc}
+          </p>
+        )}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">{actions}</div>}
     </div>
   );
 }
@@ -420,20 +424,20 @@ export function TableSkeleton({ rows = 6, cols = 5 }: { rows?: number; cols?: nu
         <Loader2 className="size-3.5 animate-spin text-teal-600 dark:text-teal-400" />
         <span>{t('common.preparingData')}</span>
       </div>
-      <table className="w-full text-sm">
+      <table className="w-full text-xs">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50/60 dark:border-slate-800 dark:bg-slate-900/40">
+          <tr className="border-b border-slate-200/90 bg-slate-50/90 dark:border-slate-800 dark:bg-slate-800/60">
             {Array.from({ length: cols }).map((_, c) => (
-              <th key={c} className="px-4 py-3"><Skeleton className={cx('h-3.5', c === 0 ? 'w-6' : 'w-24')} /></th>
+              <th key={c} className="px-3.5 py-2.5"><Skeleton className={cx('h-3.5', c === 0 ? 'w-6' : 'w-24')} /></th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+        <tbody className="divide-y divide-slate-100/90 dark:divide-slate-800/70">
           {Array.from({ length: rows }).map((_, r) => (
             <tr key={r}>
               {Array.from({ length: cols }).map((_, c) => (
-                <td key={c} className="px-4 py-3">
-                  <Skeleton className={cx('h-4', c === 0 ? 'w-6' : c % 2 ? 'w-3/4' : 'w-1/2')} />
+                <td key={c} className="px-3.5 py-2.5">
+                  <Skeleton className={cx('h-3.5', c === 0 ? 'w-6' : c % 2 ? 'w-3/4' : 'w-1/2')} />
                 </td>
               ))}
             </tr>
@@ -502,6 +506,7 @@ export function FormSkeleton() {
 }
 
 export function PageShellSkeleton({ label }: { label?: string }) {
+  const { t } = usePrefs();
   return (
     <div className="flex min-h-dvh bg-slate-50 dark:bg-slate-950" aria-busy="true">
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:flex">
@@ -512,7 +517,7 @@ export function PageShellSkeleton({ label }: { label?: string }) {
         <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Loader2 className="size-4 animate-spin text-teal-600 dark:text-teal-400" />
-            <span>{label ?? 'Menyiapkan data…'}</span>
+            <span>{label ?? t('common.preparingData')}</span>
           </div>
           <Skeleton className="h-8 w-36 rounded-lg" />
         </header>
@@ -592,30 +597,42 @@ export function Table<T extends { id: number | string }>({
       <table className={cx('w-full text-xs transition-opacity duration-150', loading && 'opacity-65')}>
         <thead>
           <tr className="border-b border-slate-200/90 bg-slate-50/90 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
-            {showIndex && <th className="w-12 px-3 py-2 text-center font-medium">{t('common.no')}</th>}
+            {showIndex && <th className="w-12 px-3.5 py-2.5 text-center font-medium">{t('common.no')}</th>}
             {columns.map((c) => {
               const sKey = c.sortKey ?? c.key;
               const canSort = !!onSort && (c.sortable || !!c.sortKey);
               const isSorted = canSort && sortBy === sKey;
+              const isRight = c.align === 'right';
+              const isCenter = c.className?.includes('text-center');
               return (
-                <th key={c.key} className={cx('px-3 py-2 whitespace-nowrap', c.align === 'right' && 'text-right', c.className)}>
+                <th key={c.key} className={cx('px-3.5 py-2.5 whitespace-nowrap', isRight && 'text-right', isCenter && 'text-center', c.className)}>
                   {canSort ? (
                     <button
                       type="button"
                       onClick={() => onSort(sKey)}
                       className={cx(
-                        'inline-flex items-center gap-1 font-semibold uppercase tracking-wider transition-colors hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer',
-                        c.align === 'right' && 'justify-end w-full',
+                        'inline-flex items-center gap-1.5 font-semibold uppercase tracking-wider transition-colors hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer select-none',
+                        isRight ? 'ml-auto justify-end' : isCenter ? 'mx-auto justify-center' : 'justify-start',
                         isSorted && 'text-teal-700 dark:text-teal-400',
                       )}
                       title={`${t('common.sortBy')} ${c.label}`}
                     >
-                      <span>{c.label}</span>
-                      {isSorted
-                        ? (sortDir === 'desc' ? <ArrowDown className="size-3.5 shrink-0" /> : <ArrowUp className="size-3.5 shrink-0" />)
-                        : <ArrowUpDown className="size-3 opacity-40 shrink-0" />}
+                      <span className="truncate">{c.label}</span>
+                      <span className="shrink-0">
+                        {isSorted ? (
+                          sortDir === 'desc' ? (
+                            <ArrowDown className="size-3.5 text-teal-700 dark:text-teal-400" />
+                          ) : (
+                            <ArrowUp className="size-3.5 text-teal-700 dark:text-teal-400" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="size-3 opacity-40" />
+                        )}
+                      </span>
                     </button>
-                  ) : c.label}
+                  ) : (
+                    <span>{c.label}</span>
+                  )}
                 </th>
               );
             })}

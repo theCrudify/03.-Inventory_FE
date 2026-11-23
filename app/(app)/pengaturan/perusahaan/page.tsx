@@ -37,29 +37,29 @@ export default function PerusahaanPage() {
         <Card>
           <CardHeader index={1} title={t('company.secTpb')} />
           <form className="grid gap-3 p-5 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); save('company', company); }}>
-            <Field index="1.1" label="Nama Perusahaan" required className="sm:col-span-2"><Input required {...c('name')} /></Field>
-            <Field index="1.2" label="NPWP" required><Input required {...c('npwp')} /></Field>
-            <Field index="1.3" label="No. Izin Kawasan Berikat" required><Input required {...c('izinKb')} /></Field>
-            <Field index="1.4" label="ID Perusahaan CEISA" required hint="6 digit, bagian dari nomor aju"><Input required {...c('companyId')} /></Field>
-            <Field index="1.5" label="Zona Waktu" required hint="IANA, mis. Asia/Jakarta"><Input required {...c('timezone')} /></Field>
-            <Field index="1.6" label="Alamat" required className="sm:col-span-2"><Input required {...c('address')} /></Field>
-            <Field index="1.7" label="Kota (tempat tanda tangan)" required><Input required {...c('city')} /></Field>
+            <Field index="1.1" label={t('company.fieldName')} required className="sm:col-span-2"><Input required {...c('name')} /></Field>
+            <Field index="1.2" label={t('company.npwp')} required><Input required {...c('npwp')} /></Field>
+            <Field index="1.3" label={t('company.izinKb')} required><Input required {...c('izinKb')} /></Field>
+            <Field index="1.4" label={t('company.companyId')} required hint={t('company.companyIdHint')}><Input required {...c('companyId')} /></Field>
+            <Field index="1.5" label={t('company.timezone')} required hint={t('company.timezoneHint')}><Input required {...c('timezone')} /></Field>
+            <Field index="1.6" label={t('company.address')} required className="sm:col-span-2"><Input required {...c('address')} /></Field>
+            <Field index="1.7" label={t('company.city')} required><Input required {...c('city')} /></Field>
             <div />
-            <Field index="1.8" label="Penandatangan" required><Input required value={company.signatory.name} onChange={(e) => setCompany({ ...company, signatory: { ...company.signatory, name: e.target.value } })} /></Field>
-            <Field index="1.9" label="Jabatan" required><Input required value={company.signatory.title} onChange={(e) => setCompany({ ...company, signatory: { ...company.signatory, title: e.target.value } })} /></Field>
+            <Field index="1.8" label={t('company.signatoryName')} required><Input required value={company.signatory.name} onChange={(e) => setCompany({ ...company, signatory: { ...company.signatory, name: e.target.value } })} /></Field>
+            <Field index="1.9" label={t('company.signatoryTitle')} required><Input required value={company.signatory.title} onChange={(e) => setCompany({ ...company, signatory: { ...company.signatory, title: e.target.value } })} /></Field>
             <div className="sm:col-span-2"><Button type="submit" loading={busy === 'company'}>{t('company.saveProfile')}</Button></div>
           </form>
         </Card>
         <Card>
           <CardHeader index={2} title={t('company.secApp')} />
           <form className="grid gap-3 p-5" onSubmit={(e) => { e.preventDefault(); save('app', app); }}>
-            <Field index="2.1" label="Nama Aplikasi" required><Input required {...a('name')} /></Field>
-            <Field index="2.2" label="Subjudul"><Input {...a('subtitle')} /></Field>
-            <Field index="2.3" label="Tagline (halaman login)"><Input {...a('tagline')} /></Field>
-            <Field index="2.4" label="Deskripsi (halaman login)"><Textarea value={app.description} onChange={(e) => setApp({ ...app, description: e.target.value })} /></Field>
-            <Field index="2.5" label="Label lingkungan (topbar)" hint="Kosongkan untuk menyembunyikan"><Input {...a('environmentLabel')} /></Field>
-            <Field index="2.6" label="Kop dokumen cetak"><Input {...a('printHeader')} /></Field>
-            <Field index="2.7" label="Catatan kaki cetak"><Input {...a('printFootnote')} /></Field>
+            <Field index="2.1" label={t('company.appName')} required><Input required {...a('name')} /></Field>
+            <Field index="2.2" label={t('company.subtitle')}><Input {...a('subtitle')} /></Field>
+            <Field index="2.3" label={t('company.tagline')}><Input {...a('tagline')} /></Field>
+            <Field index="2.4" label={t('company.description')}><Textarea value={app.description} onChange={(e) => setApp({ ...app, description: e.target.value })} /></Field>
+            <Field index="2.5" label={t('company.environmentLabel')} hint={t('company.environmentHint')}><Input {...a('environmentLabel')} /></Field>
+            <Field index="2.6" label={t('company.printHeader')}><Input {...a('printHeader')} /></Field>
+            <Field index="2.7" label={t('company.printFootnote')}><Input {...a('printFootnote')} /></Field>
             <div><Button type="submit" loading={busy === 'app'}>{t('company.saveApp')}</Button></div>
           </form>
         </Card>

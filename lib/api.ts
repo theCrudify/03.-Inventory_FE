@@ -1,5 +1,9 @@
+import { translate, type I18nKey } from './i18n';
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8787';
 const TOKEN_KEY = 'nis_token';
+const lang = () => { try { return localStorage.getItem('arunika_lang') === 'en' ? 'en' : 'id'; } catch { return 'id'; } };
+const apiMsg = (key: I18nKey, vars?: Record<string, string | number>) => translate(lang(), key, vars);
 
 export const token = {
   get: () => { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } },
@@ -22,14 +26,14 @@ export async function api<T = unknown>(path: string, init: RequestInit & { json?
       body: json !== undefined ? JSON.stringify(json) : rest.body,
     });
   } catch {
-    throw new ApiError('Tidak dapat terhubung ke server API', 0);
+    throw new ApiError(apiMsg('error.apiUnreachable'), 0);
   }
   const body = await res.json().catch(() => ({}));
   if (res.status === 401 && path !== '/auth/login') {
     token.clear();
     if (typeof window !== 'undefined' && !location.pathname.startsWith('/login')) location.href = '/login';
   }
-  if (!res.ok) throw new ApiError(body.message ?? `Error ${res.status}`, res.status, body.errors);
+  if (!res.ok) throw new ApiError(body.message ?? apiMsg('error.httpStatus', { status: res.status }), res.status, body.errors);
   return body as T;
 }
 

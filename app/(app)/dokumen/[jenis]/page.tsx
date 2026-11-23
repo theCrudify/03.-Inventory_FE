@@ -112,7 +112,7 @@ export default function DocListPage() {
               { key: 'registrationNumber', sortable: true, label: t('doc.regNumber'), className: 'w-44', render: (r) => r.registrationNumber ? <span className="font-mono text-xs font-medium">{r.registrationNumber}<span className="block text-slate-400 dark:text-slate-500 font-normal">{date(r.registrationDate)}</span></span> : <span className="text-slate-400">-</span> },
               { key: 'partnerName', sortable: true, label: meta.direction(cfg.direction).partyLabel, className: 'min-w-[200px]' },
               { key: 'totalValue', sortable: true, label: t('doc.value'), className: 'w-44 whitespace-nowrap', align: 'right', render: (r) => <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{money(r.totalValue, r.currency)}</span> },
-              { key: 'status', sortable: true, label: t('doc.status'), className: 'w-36 whitespace-nowrap', render: (r) => { const st = meta.status(r.status); return <Badge tone={st.tone} pulse={st.inFlight}>{st.label}</Badge>; } },
+              { key: 'status', sortable: true, label: t('doc.status'), className: 'w-36 whitespace-nowrap text-center', render: (r) => { const st = meta.status(r.status); return <Badge tone={st.tone} pulse={st.inFlight}>{st.label}</Badge>; } },
               { key: 'createdAt', sortable: true, label: t('doc.createdAt'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="whitespace-nowrap text-slate-500 dark:text-slate-400">{date(r.createdAt)}</span> },
             ]}
           />

@@ -103,8 +103,8 @@ export function MasterCodePage<T extends { code: string }>({ title, desc, path, 
   }
 
   const cols: Column<T & { id: string }>[] = writable ? [...columns, {
-    key: '_act', label: '', align: 'right', render: (r) => (
-      <span className="inline-flex gap-1">
+    key: '_act', label: '', align: 'right', className: 'w-20', render: (r) => (
+      <span className="inline-flex items-center justify-end gap-1">
         <Button variant="ghost" size="sm" onClick={() => open(r)} aria-label={t('common.edit')}><Pencil className="size-3.5" /></Button>
         <Button variant="ghost" size="sm" onClick={() => remove(r)} aria-label={t('common.delete')} className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"><Trash2 className="size-3.5" /></Button>
       </span>
