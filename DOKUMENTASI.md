@@ -34,7 +34,7 @@ kartu stok, dan laporan mutasi. Perusahaan, mitra, dan transaksi di dalamnya fik
 Alur operator dari awal sampai akhir (90 detik): login, dashboard, daftar BC 2.3, membuka dokumen draft, **Kirim ke CEISA**,
 status berjalan Draft, Terkirim, Diterima CEISA, Tervalidasi, SPPB (disetujui), lalu laporan mutasi dan master barang.
 
-<video src="video/demo.mp4" controls width="860"></video>
+[![Demo Video Arunika IT Inventory](video/demo.gif)](video/demo.mp4)
 
 File: [`video/demo.mp4`](video/demo.mp4) (dan [`demo.webm`](video/demo.webm)). Jika video tidak tampil di penampil Markdown Anda, buka `index.html`.
 

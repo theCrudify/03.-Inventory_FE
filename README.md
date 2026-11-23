@@ -41,9 +41,9 @@ Frontend aplikasi prototype **IT Inventory Kawasan Berikat**: pengelolaan dokume
 
 Alur operator dari awal sampai akhir (90 detik): login, dashboard KPI, daftar BC 2.3, membuka dokumen draft, **Kirim ke CEISA**, status berjalan otomatis (*Draft* $\to$ *Terkirim* $\to$ *Diterima CEISA* $\to$ *Tervalidasi* $\to$ *SPPB disetujui*), pengecekan saldo kartu stok, laporan mutasi bahan baku, hingga master barang.
 
-<video src="video/demo.mp4" controls width="860"></video>
+[![Demo Video Arunika IT Inventory](video/demo.gif)](video/demo.mp4)
 
-> File lokal: [`video/demo.mp4`](video/demo.mp4) dan [`video/demo.webm`](video/demo.webm).
+> 💡 **Animasi Otomatis:** Gambar GIF di atas otomatis bergerak di GitHub dan semua Markdown viewer. Klik gambar atau tautan berikut untuk memutar video resolusi tinggi penuh: [`video/demo.mp4`](video/demo.mp4) (atau [`video/demo.webm`](video/demo.webm)).
 
 ---
 
