@@ -115,7 +115,7 @@ export function MasterCodePage<T extends { code: string }>({ title, desc, path, 
 
   return (
     <>
-      <PageHeader title={title} desc={desc} actions={writable && <Button onClick={() => open('new')}><Plus className="size-4" />{t('common.add')}</Button>} />
+      <PageHeader title={title} desc={desc} />
       <Card>
         <FilterBar
           search={
@@ -125,6 +125,14 @@ export function MasterCodePage<T extends { code: string }>({ title, desc, path, 
               searching={q !== debouncedQ}
               onChange={(v) => { setQ(v); setPage(1); }}
             />
+          }
+          actions={
+            writable && (
+              <Button onClick={() => open('new')}>
+                <Plus className="size-4" />
+                {t('common.add')} {title}
+              </Button>
+            )
           }
           hasActiveFilters={hasFilters}
           onReset={() => { setQ(''); setPage(1); setSortBy('sort'); setSortDir('asc'); }}

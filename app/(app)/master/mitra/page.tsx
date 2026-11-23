@@ -17,11 +17,11 @@ export default function MitraPage() {
       defaultSort={{ key: 'name', dir: 'asc' }}
       filter={{ name: 'kind', label: t('partners.kind'), options: kinds }}
       columns={[
-        { key: 'name', sortable: true, label: t('partners.name'), render: (r) => <span className="font-medium text-slate-800 dark:text-slate-200">{r.name}</span> },
-        { key: 'kind', sortable: true, label: t('partners.kind'), render: (r) => <Badge>{meta.label('jenis_mitra', r.kind)}</Badge> },
-        { key: 'npwp', sortable: true, label: 'NPWP', render: (r) => <span className="font-mono text-xs">{r.npwp ?? '-'}</span> },
-        { key: 'countryCode', sortable: true, label: t('partners.country'), render: (r) => meta.label('negara', r.countryCode) },
-        { key: 'address', sortable: true, label: t('partners.address'), className: 'max-w-xs truncate' },
+        { key: 'name', sortable: true, label: t('partners.name'), className: 'min-w-[200px]', render: (r) => <span className="font-semibold text-slate-800 dark:text-slate-200">{r.name}</span> },
+        { key: 'kind', sortable: true, label: t('partners.kind'), className: 'w-36', render: (r) => <Badge>{meta.label('jenis_mitra', r.kind)}</Badge> },
+        { key: 'npwp', sortable: true, label: 'NPWP', className: 'w-44 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-medium">{r.npwp ?? '-'}</span> },
+        { key: 'countryCode', sortable: true, label: t('partners.country'), className: 'w-36', render: (r) => meta.label('negara', r.countryCode) },
+        { key: 'address', sortable: true, label: t('partners.address'), className: 'max-w-md truncate' },
       ]}
       fields={[
         { name: 'name', label: t('partners.name'), required: true, full: true },

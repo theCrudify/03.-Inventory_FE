@@ -28,9 +28,9 @@ export default function ReferensiPage() {
         path={`/refs/${type}`}
         defaultSort={{ key: 'code', dir: 'asc' }}
         columns={[
-          { key: 'code', sortable: true, label: tr('refs.code'), render: (r) => <span className="font-mono text-xs">{r.code}</span> },
-          { key: 'name', sortable: true, label: tr('refs.name') },
-          ...extra.map((m) => ({ key: m.name, label: m.label, align: 'right' as const, render: (r: RefRow) => num((r.meta as Record<string, number>)?.[m.name], 2) })),
+          { key: 'code', sortable: true, label: tr('refs.code'), className: 'w-40 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+          { key: 'name', sortable: true, label: tr('refs.name'), className: 'min-w-[220px]' },
+          ...extra.map((m) => ({ key: m.name, label: m.label, className: 'w-36 whitespace-nowrap', align: 'right' as const, render: (r: RefRow) => num((r.meta as Record<string, number>)?.[m.name], 2) })),
         ]}
         fields={[{ name: 'code', label: tr('refs.code'), required: true }, { name: 'name', label: tr('refs.name'), required: true, full: true }, ...extra]}
         fromRow={(r) => ({ ...r, ...r.meta })}

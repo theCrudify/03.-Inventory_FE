@@ -71,7 +71,10 @@ export default function TradePage() {
 
   return (
     <>
-      <PageHeader title={cfg.title} desc={cfg.desc} actions={canWrite(user) && <Button onClick={() => open('new')}><Plus className="size-4" />{t('common.add')}</Button>} />
+      <PageHeader
+        title={cfg.title}
+        desc={cfg.desc}
+      />
       <Card>
         <FilterBar
           search={
@@ -81,6 +84,14 @@ export default function TradePage() {
               searching={loading && q !== debouncedQ}
               onChange={(v) => { setQ(v); setPage(1); }}
             />
+          }
+          actions={
+            canWrite(user) && (
+              <Button onClick={() => open('new')}>
+                <Plus className="size-4" />
+                {t('common.add')} {cfg.title}
+              </Button>
+            )
           }
           hasActiveFilters={hasFilters}
           onReset={() => { setQ(''); setPage(1); setSortBy('date'); setSortDir('desc'); }}
@@ -95,14 +106,14 @@ export default function TradePage() {
             onSort={onSort}
             rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
             columns={[
-              { key: 'number', sortable: true, label: t('trade.number'), render: (r) => <span className="font-mono text-xs font-medium text-slate-800 dark:text-slate-200">{r.number}</span> },
-              { key: 'date', sortable: true, label: t('trade.date'), render: (r) => date(r.date) },
-              { key: 'partnerName', sortable: true, label: cfg.partnerLabel },
-              { key: 'incoterm', sortable: true, label: 'Incoterm' },
-              { key: 'lines', label: t('trade.itemLines'), render: (r) => t('trade.itemsCount', { n: r.lines.length }) },
-              { key: 'amount', sortable: true, label: t('common.total'), align: 'right', render: (r) => money(r.amount, r.currency) },
-              ...(canWrite(user) ? [{ key: '_a', label: '', align: 'right' as const, render: (r: TradeDoc) => (
-                <span className="inline-flex gap-1">
+              { key: 'number', sortable: true, label: t('trade.number'), className: 'w-48 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.number}</span> },
+              { key: 'date', sortable: true, label: t('trade.date'), className: 'w-36 whitespace-nowrap', render: (r) => date(r.date) },
+              { key: 'partnerName', sortable: true, label: cfg.partnerLabel, className: 'min-w-[220px]' },
+              { key: 'incoterm', sortable: true, label: 'Incoterm', className: 'w-28' },
+              { key: 'lines', label: t('trade.itemLines'), className: 'w-32', render: (r) => t('trade.itemsCount', { n: r.lines.length }) },
+              { key: 'amount', sortable: true, label: t('common.total'), className: 'w-44 whitespace-nowrap', align: 'right', render: (r) => <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{money(r.amount, r.currency)}</span> },
+              ...(canWrite(user) ? [{ key: '_a', label: '', className: 'w-24', align: 'right' as const, render: (r: TradeDoc) => (
+                <span className="inline-flex items-center justify-end gap-1">
                   <Button variant="ghost" size="sm" onClick={() => open(r)} aria-label={t('common.edit')}><Pencil className="size-3.5" /></Button>
                   <Button variant="ghost" size="sm" onClick={() => remove(r)} aria-label={t('common.delete')} className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"><Trash2 className="size-3.5" /></Button>
                 </span>) }] : []),

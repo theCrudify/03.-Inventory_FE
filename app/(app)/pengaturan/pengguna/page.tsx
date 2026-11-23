@@ -19,10 +19,10 @@ export default function PenggunaPage() {
       defaultSort={{ key: 'name', dir: 'asc' }}
       filter={{ name: 'role', label: t('users.role'), options: roles }}
       columns={[
-        { key: 'name', sortable: true, label: t('users.name'), render: (r) => <span className="font-medium text-slate-800 dark:text-slate-200">{r.name}</span> },
-        { key: 'email', sortable: true, label: t('users.email') },
-        { key: 'role', sortable: true, label: t('users.role'), render: (r) => <Badge tone={meta.role(r.role).tone as Tone}>{meta.role(r.role).label}</Badge> },
-        { key: 'createdAt', sortable: true, label: t('doc.createdAt'), render: (r) => date(r.createdAt) },
+        { key: 'name', sortable: true, label: t('users.name'), className: 'w-48 whitespace-nowrap', render: (r) => <span className="font-semibold text-slate-800 dark:text-slate-200">{r.name}</span> },
+        { key: 'email', sortable: true, label: t('users.email'), className: 'min-w-[200px]' },
+        { key: 'role', sortable: true, label: t('users.role'), className: 'w-36 whitespace-nowrap', render: (r) => <Badge tone={meta.role(r.role).tone as Tone}>{meta.role(r.role).label}</Badge> },
+        { key: 'createdAt', sortable: true, label: t('doc.createdAt'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="text-slate-500 dark:text-slate-400">{date(r.createdAt)}</span> },
       ]}
       fields={[
         { name: 'name', label: t('users.name'), required: true, full: true },

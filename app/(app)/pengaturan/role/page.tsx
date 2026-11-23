@@ -13,11 +13,11 @@ export default function RolePage() {
       title="Role" desc="Master role dan hak aksesnya. Role baru langsung bisa dipilih di halaman Pengguna."
       path="/roles" onChanged={meta.reload}
       columns={[
-        { key: 'code', sortable: true, label: 'Kode', render: (r) => <span className="font-mono text-xs">{r.code}</span> },
-        { key: 'name', sortable: true, label: 'Nama', render: (r) => <Badge tone={r.tone}>{r.name}</Badge> },
-        { key: 'canWrite', sortable: true, label: 'Boleh mengubah data', render: (r) => (r.canWrite ? 'Ya' : 'Tidak') },
-        { key: 'isAdmin', sortable: true, label: 'Admin', render: (r) => (r.isAdmin ? 'Ya' : 'Tidak') },
-        { key: 'description', sortable: true, label: 'Keterangan', className: 'max-w-sm truncate' },
+        { key: 'code', sortable: true, label: 'Kode', className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+        { key: 'name', sortable: true, label: 'Nama', className: 'w-44', render: (r) => <Badge tone={r.tone}>{r.name}</Badge> },
+        { key: 'canWrite', sortable: true, label: 'Boleh mengubah data', className: 'w-44', render: (r) => (r.canWrite ? 'Ya' : 'Tidak') },
+        { key: 'isAdmin', sortable: true, label: 'Admin', className: 'w-28', render: (r) => (r.isAdmin ? 'Ya' : 'Tidak') },
+        { key: 'description', sortable: true, label: 'Keterangan', className: 'min-w-[200px]' },
       ]}
       fields={[
         { name: 'code', label: 'Kode', required: true, lockOnEdit: true, hint: 'Huruf kecil, angka, underscore. Tidak dapat diubah setelah dibuat.' },

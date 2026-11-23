@@ -21,11 +21,11 @@ export type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const btnCls = (variant: BtnProps['variant'] = 'primary', size: BtnProps['size'] = 'md') => cx(
-  'inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 whitespace-nowrap cursor-pointer select-none active:scale-[0.98]',
-  size === 'xs' && 'h-7 px-2.5 text-xs',
-  size === 'sm' && 'h-8.5 px-3 text-xs',
-  size === 'md' && 'h-9.5 px-3.5 text-sm',
-  size === 'lg' && 'h-10.5 px-4.5 text-base',
+  'inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 whitespace-nowrap cursor-pointer select-none active:scale-[0.98]',
+  size === 'xs' && 'h-6.5 px-2 text-[11px]',
+  size === 'sm' && 'h-7.5 px-2.5 text-xs',
+  size === 'md' && 'h-8.5 px-3 text-xs sm:text-[13px]',
+  size === 'lg' && 'h-9.5 px-4 text-sm',
   variant === 'primary' && 'bg-teal-700 text-white shadow-xs hover:bg-teal-800 hover:shadow-sm dark:bg-teal-600 dark:hover:bg-teal-500',
   variant === 'secondary' && 'border border-slate-200/90 bg-white text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 dark:border-slate-700/80 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:border-slate-600',
   variant === 'danger' && 'bg-red-600 text-white shadow-xs hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500',
@@ -45,14 +45,14 @@ export function Button({ variant, size, loading, href, className, children, ...p
 /* =========================================================================
    FORM INPUTS
    ========================================================================= */
-const inputCls = 'h-9.5 w-full rounded-lg border border-slate-200/90 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/15 disabled:bg-slate-50/80 disabled:text-slate-400 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-700 dark:focus:border-teal-500 dark:disabled:bg-slate-800/40';
+const inputCls = 'h-8.5 w-full rounded-md border border-slate-200/90 bg-white px-2.5 text-xs sm:text-[13px] text-slate-900 placeholder:text-slate-400 shadow-2xs transition-all duration-150 hover:border-slate-300 focus:border-teal-600 focus:outline-none focus:ring-1.5 focus:ring-teal-600/15 disabled:bg-slate-50/80 disabled:text-slate-400 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-700 dark:focus:border-teal-500 dark:disabled:bg-slate-800/40';
 
 export const Input = ({ className, ...p }: React.InputHTMLAttributes<HTMLInputElement>) => (
   <input {...p} className={cx(inputCls, className)} />
 );
 
 export const Textarea = ({ className, ...p }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-  <textarea {...p} className={cx(inputCls, 'h-auto min-h-20 py-2.5 leading-relaxed', className)} />
+  <textarea {...p} className={cx(inputCls, 'h-auto min-h-16 py-2 leading-relaxed', className)} />
 );
 
 export function Select({
@@ -64,14 +64,14 @@ export function Select({
         {...p}
         className={cx(
           inputCls,
-          'appearance-none pr-8 cursor-pointer font-normal',
+          'appearance-none pr-7.5 cursor-pointer font-normal',
           className,
         )}
       >
         {placeholder !== undefined && <option value="">{placeholder}</option>}
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-3.5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
     </div>
   );
 }
@@ -84,24 +84,24 @@ export function SearchInput({
   const { t } = usePrefs();
   return (
     <div className={cx('relative flex items-center', className)}>
-      <Search className="pointer-events-none absolute left-3 size-4 text-slate-400 dark:text-slate-500" />
+      <Search className="pointer-events-none absolute left-2.5 size-3.5 text-slate-400 dark:text-slate-500" />
       <Input
         aria-label={ariaLabel ?? t('common.search')}
-        className="pl-9 pr-8"
+        className="pl-8 pr-7"
         placeholder={placeholder ?? t('common.searchPlaceholder')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       {searching ? (
-        <Loader2 className="pointer-events-none absolute right-2.5 size-4 animate-spin text-teal-600 dark:text-teal-400" />
+        <Loader2 className="pointer-events-none absolute right-2 size-3.5 animate-spin text-teal-600 dark:text-teal-400" />
       ) : value ? (
         <button
           type="button"
           onClick={() => { onChange(''); onClear?.(); }}
           aria-label={t('common.clear')}
-          className="absolute right-2.5 rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="absolute right-2 rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
         >
-          <X className="size-3.5" />
+          <X className="size-3" />
         </button>
       ) : null}
     </div>
@@ -114,7 +114,7 @@ export function Field({
   label: string; index?: number | string; error?: string; hint?: string; children: React.ReactNode; className?: string; required?: boolean;
 }) {
   return (
-    <div className={cx('space-y-1.5', className)}>
+    <div className={cx('space-y-1', className)}>
       <label className="flex items-center gap-1.5 text-xs font-semibold tracking-tight text-slate-700 dark:text-slate-300">
         {index !== undefined && (
           <span className="inline-flex h-4 min-w-4 items-center justify-center rounded bg-slate-100 px-1 font-mono text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
@@ -200,12 +200,12 @@ export function FilterBar({
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   return (
-    <div className={cx('border-b border-slate-200/80 bg-white/70 p-3.5 backdrop-blur-xs transition-colors dark:border-slate-800/80 dark:bg-slate-900/60', className)}>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <div className={cx('border-b border-slate-200/80 bg-white/70 px-4 py-2.5 backdrop-blur-xs transition-colors dark:border-slate-800/80 dark:bg-slate-900/60', className)}>
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
         {/* Left / Center controls */}
-        <div className="flex flex-1 flex-col gap-2.5 sm:flex-row sm:items-center">
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
           {search && (
-            <div className="w-full sm:w-auto sm:min-w-[240px] sm:max-w-xs">
+            <div className="w-full sm:w-auto sm:min-w-[280px] sm:max-w-md lg:max-w-lg">
               {search}
             </div>
           )}
@@ -310,19 +310,19 @@ export const CardHeader = ({
 }: {
   title: string; desc?: string; action?: React.ReactNode; index?: number | string;
 }) => (
-  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5 dark:border-slate-800/80">
-    <div className="flex items-center gap-2.5">
+  <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-100 px-4 py-2.5 dark:border-slate-800/80">
+    <div className="flex items-center gap-2">
       {index !== undefined && (
-        <span className="inline-flex h-5.5 min-w-6 items-center justify-center rounded-md bg-teal-50 px-1.5 font-mono text-xs font-bold text-teal-800 ring-1 ring-teal-200/80 dark:bg-teal-950/70 dark:text-teal-300 dark:ring-teal-800/80">
+        <span className="inline-flex h-5 min-w-5.5 items-center justify-center rounded-md bg-teal-50 px-1 font-mono text-[11px] font-bold text-teal-800 ring-1 ring-teal-200/80 dark:bg-teal-950/70 dark:text-teal-300 dark:ring-teal-800/80">
           {String(index).padStart(2, '0')}
         </span>
       )}
       <div>
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
-        {desc && <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 leading-normal">{desc}</p>}
+        <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+        {desc && <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{desc}</p>}
       </div>
     </div>
-    {action && <div className="flex items-center gap-2">{action}</div>}
+    {action && <div className="flex items-center gap-1.5">{action}</div>}
   </div>
 );
 
@@ -332,15 +332,15 @@ export function Stat({
   label: string; value: React.ReactNode; sub?: React.ReactNode; icon?: React.ReactNode;
 }) {
   return (
-    <Card className="relative overflow-hidden p-4.5 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700">
+    <Card className="relative overflow-hidden p-3.5 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
         <span>{label}</span>
-        {icon && <span className="rounded-lg bg-slate-50 p-1.5 dark:bg-slate-800/60">{icon}</span>}
+        {icon && <span className="rounded-md bg-slate-50 p-1 dark:bg-slate-800/60">{icon}</span>}
       </div>
-      <div className="mt-2.5 text-2xl font-bold tracking-tight tabular-nums text-slate-900 dark:text-slate-100">
+      <div className="mt-1.5 text-xl font-bold tracking-tight tabular-nums text-slate-900 dark:text-slate-100">
         {value}
       </div>
-      {sub && <div className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-normal">{sub}</div>}
+      {sub && <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-normal">{sub}</div>}
     </Card>
   );
 }
@@ -378,23 +378,29 @@ export function PageHeader({
 }) {
   const { t } = usePrefs();
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-2.5 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         {back && (
           <Link
             href={back}
-            className="group mb-1.5 inline-flex items-center gap-1 text-xs font-medium text-slate-500 transition-colors hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-400"
+            className="group mb-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 transition-colors hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-400"
           >
-            <ChevronLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <ChevronLeft className="size-3 transition-transform group-hover:-translate-x-0.5" />
             {t('common.back')}
           </Link>
         )}
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-          {title}
-        </h1>
-        {desc && <div className="mt-1 text-sm text-slate-500 dark:text-slate-400 leading-normal">{desc}</div>}
+        <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+          <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            {title}
+          </h1>
+          {desc && typeof desc === 'string' ? (
+            <span className="text-xs text-slate-500 dark:text-slate-400">· {desc}</span>
+          ) : desc ? (
+            <div className="text-xs text-slate-500 dark:text-slate-400">{desc}</div>
+          ) : null}
+        </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2 self-start sm:self-end">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">{actions}</div>}
     </div>
   );
 }
@@ -510,7 +516,7 @@ export function PageShellSkeleton({ label }: { label?: string }) {
           </div>
           <Skeleton className="h-8 w-36 rounded-lg" />
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 p-6"><DashboardSkeleton /></main>
+        <main className="w-full max-w-[1600px] 2xl:mx-auto flex-1 px-4 py-5 sm:px-6 lg:px-8"><DashboardSkeleton /></main>
       </div>
     </div>
   );
@@ -583,31 +589,31 @@ export function Table<T extends { id: number | string }>({
           <div className="animate-progress h-full rounded-full bg-teal-600 dark:bg-teal-400" />
         </div>
       )}
-      <table className={cx('w-full text-sm transition-opacity duration-150', loading && 'opacity-65')}>
+      <table className={cx('w-full text-xs transition-opacity duration-150', loading && 'opacity-65')}>
         <thead>
-          <tr className="border-b border-slate-200/90 bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
-            {showIndex && <th className="w-12 px-4 py-3 text-center font-medium">{t('common.no')}</th>}
+          <tr className="border-b border-slate-200/90 bg-slate-50/90 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
+            {showIndex && <th className="w-12 px-3 py-2 text-center font-medium">{t('common.no')}</th>}
             {columns.map((c) => {
               const sKey = c.sortKey ?? c.key;
               const canSort = !!onSort && (c.sortable || !!c.sortKey);
               const isSorted = canSort && sortBy === sKey;
               return (
-                <th key={c.key} className={cx('px-4 py-3 whitespace-nowrap', c.align === 'right' && 'text-right', c.className)}>
+                <th key={c.key} className={cx('px-3 py-2 whitespace-nowrap', c.align === 'right' && 'text-right', c.className)}>
                   {canSort ? (
                     <button
                       type="button"
                       onClick={() => onSort(sKey)}
                       className={cx(
-                        'inline-flex items-center gap-1 font-semibold uppercase tracking-wider transition-colors hover:text-slate-900 dark:hover:text-slate-100',
-                        c.align === 'right' && 'flex-row-reverse',
+                        'inline-flex items-center gap-1 font-semibold uppercase tracking-wider transition-colors hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer',
+                        c.align === 'right' && 'justify-end w-full',
                         isSorted && 'text-teal-700 dark:text-teal-400',
                       )}
                       title={`${t('common.sortBy')} ${c.label}`}
                     >
                       <span>{c.label}</span>
                       {isSorted
-                        ? (sortDir === 'desc' ? <ArrowDown className="size-3.5" /> : <ArrowUp className="size-3.5" />)
-                        : <ArrowUpDown className="size-3 opacity-45" />}
+                        ? (sortDir === 'desc' ? <ArrowDown className="size-3.5 shrink-0" /> : <ArrowUp className="size-3.5 shrink-0" />)
+                        : <ArrowUpDown className="size-3 opacity-40 shrink-0" />}
                     </button>
                   ) : c.label}
                 </th>
@@ -622,16 +628,17 @@ export function Table<T extends { id: number | string }>({
               onClick={onRowClick && (() => onRowClick(r))}
               className={cx(
                 'text-slate-700 transition-colors duration-100 dark:text-slate-300',
-                onRowClick ? 'cursor-pointer hover:bg-teal-50/40 dark:hover:bg-teal-950/20' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/40',
+                idx % 2 === 1 && 'bg-slate-50/30 dark:bg-slate-800/15',
+                onRowClick ? 'cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-950/25' : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40',
               )}
             >
               {showIndex && (
-                <td className="px-4 py-3 text-center font-mono text-xs tabular-nums text-slate-400 dark:text-slate-500">
+                <td className="px-3 py-2 text-center font-mono text-[11px] tabular-nums text-slate-400 dark:text-slate-500">
                   {rowNumberOffset + idx + 1}
                 </td>
               )}
               {columns.map((c) => (
-                <td key={c.key} className={cx('px-4 py-3', c.align === 'right' && 'text-right tabular-nums', c.className)}>
+                <td key={c.key} className={cx('px-3 py-2', c.align === 'right' && 'text-right tabular-nums', c.className)}>
                   {c.render ? c.render(r, idx) : String((r as Record<string, unknown>)[c.key] ?? '-')}
                 </td>
               ))}
@@ -669,7 +676,7 @@ export function Pagination({
   })();
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-slate-100/90 px-4 py-3 text-xs text-slate-500 dark:border-slate-800/80 dark:text-slate-400">
+    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between border-t border-slate-100/90 px-3.5 py-2 text-xs text-slate-500 dark:border-slate-800/80 dark:text-slate-400">
       <div className="flex flex-wrap items-center gap-3">
         <span>
           {total
@@ -683,7 +690,7 @@ export function Pagination({
               value={pageSize}
               onChange={(e) => onPageSize(Number(e.target.value))}
               aria-label={t('common.rowsPerPage')}
-              className="h-7.5 rounded-md border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 shadow-2xs focus:border-teal-600 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="h-7 rounded-md border border-slate-200 bg-white px-1.5 text-xs font-medium text-slate-700 shadow-2xs focus:border-teal-600 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               {pageSizeOptions.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -691,8 +698,8 @@ export function Pagination({
         )}
       </div>
       <div className="flex items-center gap-1 self-center sm:self-auto">
-        <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label={t('common.prev')}>
-          <ChevronLeft className="size-4" />
+        <Button variant="ghost" size="xs" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label={t('common.prev')}>
+          <ChevronLeft className="size-3.5" />
         </Button>
         {pageList.map((p, i) => p === '...' ? (
           <span key={`e-${i}`} className="px-1 text-slate-400">…</span>
@@ -702,7 +709,7 @@ export function Pagination({
             type="button"
             onClick={() => onPage(p)}
             className={cx(
-              'h-7.5 min-w-7.5 rounded-md px-2 text-xs font-semibold tabular-nums transition-colors',
+              'h-6.5 min-w-6.5 rounded px-1.5 text-xs font-semibold tabular-nums transition-colors',
               p === page
                 ? 'bg-teal-700 text-white shadow-xs dark:bg-teal-600'
                 : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
@@ -711,8 +718,8 @@ export function Pagination({
             {p}
           </button>
         ))}
-        <Button variant="ghost" size="sm" disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label={t('common.next')}>
-          <ChevronRight className="size-4" />
+        <Button variant="ghost" size="xs" disabled={page >= pages} onClick={() => onPage(page + 1)} aria-label={t('common.next')}>
+          <ChevronRight className="size-3.5" />
         </Button>
       </div>
     </div>

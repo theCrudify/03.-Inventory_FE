@@ -53,8 +53,7 @@ export default function DocListPage() {
 
   return (
     <>
-      <PageHeader title={cfg.label} desc={cfg.title}
-        actions={canWrite(user) && <Button href={`/dokumen/${jenis}/baru`}><Plus className="size-4" />{t('doc.create')} {cfg.label}</Button>} />
+      <PageHeader title={cfg.label} desc={cfg.title} />
       <Card>
         <FilterBar
           search={
@@ -86,6 +85,14 @@ export default function DocListPage() {
               />
             </>
           }
+          actions={
+            canWrite(user) && (
+              <Button href={`/dokumen/${jenis}/baru`}>
+                <Plus className="size-4" />
+                {t('doc.create')} {cfg.label}
+              </Button>
+            )
+          }
           hasActiveFilters={hasFilters}
           activeFilterCount={(status ? 1 : 0) + (from || to ? 1 : 0)}
           onReset={reset}
@@ -101,12 +108,12 @@ export default function DocListPage() {
             rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
             onRowClick={(r) => router.push(`/dokumen/${jenis}/${r.id}`)}
             columns={[
-              { key: 'ajuNumber', sortable: true, label: t('doc.ajuNumber'), render: (r) => <span className="whitespace-nowrap font-mono text-xs text-slate-800 dark:text-slate-200">{aju(r.ajuNumber)}</span> },
-              { key: 'registrationNumber', sortable: true, label: t('doc.regNumber'), render: (r) => r.registrationNumber ? <span className="font-mono text-xs">{r.registrationNumber}<span className="block text-slate-400 dark:text-slate-500">{date(r.registrationDate)}</span></span> : <span className="text-slate-400">-</span> },
-              { key: 'partnerName', sortable: true, label: meta.direction(cfg.direction).partyLabel, className: 'max-w-60 truncate' },
-              { key: 'totalValue', sortable: true, label: t('doc.value'), align: 'right', render: (r) => money(r.totalValue, r.currency) },
-              { key: 'status', sortable: true, label: t('doc.status'), render: (r) => { const st = meta.status(r.status); return <Badge tone={st.tone} pulse={st.inFlight}>{st.label}</Badge>; } },
-              { key: 'createdAt', sortable: true, label: t('doc.createdAt'), render: (r) => <span className="whitespace-nowrap">{date(r.createdAt)}</span> },
+              { key: 'ajuNumber', sortable: true, label: t('doc.ajuNumber'), className: 'w-60 whitespace-nowrap', render: (r) => <span className="whitespace-nowrap font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{aju(r.ajuNumber)}</span> },
+              { key: 'registrationNumber', sortable: true, label: t('doc.regNumber'), className: 'w-44', render: (r) => r.registrationNumber ? <span className="font-mono text-xs font-medium">{r.registrationNumber}<span className="block text-slate-400 dark:text-slate-500 font-normal">{date(r.registrationDate)}</span></span> : <span className="text-slate-400">-</span> },
+              { key: 'partnerName', sortable: true, label: meta.direction(cfg.direction).partyLabel, className: 'min-w-[200px]' },
+              { key: 'totalValue', sortable: true, label: t('doc.value'), className: 'w-44 whitespace-nowrap', align: 'right', render: (r) => <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{money(r.totalValue, r.currency)}</span> },
+              { key: 'status', sortable: true, label: t('doc.status'), className: 'w-36 whitespace-nowrap', render: (r) => { const st = meta.status(r.status); return <Badge tone={st.tone} pulse={st.inFlight}>{st.label}</Badge>; } },
+              { key: 'createdAt', sortable: true, label: t('doc.createdAt'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="whitespace-nowrap text-slate-500 dark:text-slate-400">{date(r.createdAt)}</span> },
             ]}
           />
         )}

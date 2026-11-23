@@ -117,7 +117,7 @@ export function CrudPage<T extends { id: number }>({
 
   return (
     <>
-      <PageHeader title={title} desc={desc} actions={writable && <Button onClick={() => open('new')}><Plus className="size-4" />{t('common.add')}</Button>} />
+      <PageHeader title={title} desc={desc} />
       {extraHeader}
       <Card>
         {!unpaged && (
@@ -142,6 +142,14 @@ export function CrudPage<T extends { id: number }>({
                   />
                 </div>
               ) : null
+            }
+            actions={
+              writable && (
+                <Button onClick={() => open('new')}>
+                  <Plus className="size-4" />
+                  {t('common.add')} {title}
+                </Button>
+              )
             }
             hasActiveFilters={hasFilters}
             activeFilterCount={f ? 1 : 0}

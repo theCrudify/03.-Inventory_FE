@@ -70,8 +70,10 @@ export default function MutasiPage() {
   const n = (v: number) => <span className={v < 0 ? 'text-red-600 dark:text-red-400' : ''}>{qty(v)}</span>;
   return (
     <>
-      <PageHeader title={cfg.report} desc={t('report.desc', { from: date(from), to: date(to) })}
-        actions={<Button variant="secondary" onClick={exportCsv} loading={exporting} disabled={!data?.total}><Download className="size-4" />{t('common.exportCsv')}</Button>} />
+      <PageHeader
+        title={cfg.report}
+        desc={t('report.desc', { from: date(from), to: date(to) })}
+      />
       <Card>
         <FilterBar
           search={
@@ -92,6 +94,12 @@ export default function MutasiPage() {
               toLabel={t('report.to')}
             />
           }
+          actions={
+            <Button variant="secondary" onClick={exportCsv} loading={exporting} disabled={!data?.total}>
+              <Download className="size-4" />
+              {t('common.exportCsv')}
+            </Button>
+          }
           hasActiveFilters={hasFilters}
           activeFilterCount={from !== defaultFrom || to !== defaultTo ? 1 : 0}
           onReset={reset}
@@ -106,14 +114,14 @@ export default function MutasiPage() {
             onSort={onSort}
             rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
             columns={[
-              { key: 'code', sortable: true, label: t('report.code'), render: (r) => <span className="font-mono text-xs">{r.code}</span> },
-              { key: 'name', sortable: true, label: t('report.name') },
-              { key: 'uom', sortable: true, label: t('report.uom') },
-              { key: 'saldoAwal', sortable: true, label: t('report.opening'), align: 'right', render: (r) => n(r.saldoAwal) },
-              { key: 'pemasukan', sortable: true, label: t('report.in'), align: 'right', render: (r) => <span className="text-emerald-700 dark:text-emerald-400">{qty(r.pemasukan)}</span> },
-              { key: 'pengeluaran', sortable: true, label: t('report.out'), align: 'right', render: (r) => <span className="text-amber-700 dark:text-amber-400">{qty(r.pengeluaran)}</span> },
-              { key: 'penyesuaian', sortable: true, label: t('report.adj'), align: 'right', render: (r) => n(r.penyesuaian) },
-              { key: 'saldoAkhir', sortable: true, label: t('report.closing'), align: 'right', render: (r) => <b>{n(r.saldoAkhir)}</b> },
+              { key: 'code', sortable: true, label: t('report.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+              { key: 'name', sortable: true, label: t('report.name'), className: 'min-w-[200px]' },
+              { key: 'uom', sortable: true, label: t('report.uom'), className: 'w-24 text-center' },
+              { key: 'saldoAwal', sortable: true, label: t('report.opening'), className: 'w-32', align: 'right', render: (r) => n(r.saldoAwal) },
+              { key: 'pemasukan', sortable: true, label: t('report.in'), className: 'w-32', align: 'right', render: (r) => <span className="font-semibold text-emerald-700 dark:text-emerald-400">{qty(r.pemasukan)}</span> },
+              { key: 'pengeluaran', sortable: true, label: t('report.out'), className: 'w-32', align: 'right', render: (r) => <span className="font-semibold text-amber-700 dark:text-amber-400">{qty(r.pengeluaran)}</span> },
+              { key: 'penyesuaian', sortable: true, label: t('report.adj'), className: 'w-28', align: 'right', render: (r) => n(r.penyesuaian) },
+              { key: 'saldoAkhir', sortable: true, label: t('report.closing'), className: 'w-36', align: 'right', render: (r) => <span className="font-bold text-slate-900 dark:text-slate-100">{n(r.saldoAkhir)}</span> },
             ]}
           />
         )}

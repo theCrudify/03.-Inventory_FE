@@ -21,9 +21,9 @@ export default function StatusPage() {
       title="Status Dokumen" desc="Master status dokumen BC. Alur dokumen ditentukan oleh flag di bawah, bukan oleh nama status."
       path="/document-statuses" onChanged={meta.reload}
       columns={[
-        { key: 'code', sortable: true, label: 'Kode', render: (r) => <span className="font-mono text-xs">{r.code}</span> },
-        { key: 'name', sortable: true, label: 'Nama', render: (r) => <Badge tone={r.tone}>{r.name}</Badge> },
-        { key: 'flags', label: 'Flag', render: (r) => <span className="flex flex-wrap gap-1">{FLAGS.filter((f) => r[f.key]).map((f) => <Badge key={f.key}>{f.label}</Badge>)}</span> },
+        { key: 'code', sortable: true, label: 'Kode', className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+        { key: 'name', sortable: true, label: 'Nama', className: 'w-44', render: (r) => <Badge tone={r.tone}>{r.name}</Badge> },
+        { key: 'flags', label: 'Flag', className: 'min-w-[240px]', render: (r) => <span className="flex flex-wrap gap-1">{FLAGS.filter((f) => r[f.key]).map((f) => <Badge key={f.key}>{f.label}</Badge>)}</span> },
       ]}
       fields={[
         { name: 'code', label: 'Kode', required: true, lockOnEdit: true, hint: 'Huruf kecil, angka, underscore. Tidak dapat diubah setelah dibuat.' },
