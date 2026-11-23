@@ -1,0 +1,19 @@
+'use client';
+import { useCallback, useEffect, useState } from 'react';
+import { api } from './api';
+
+/** GET `path` (null = skip); refetches when the path changes. */
+export function useFetch<T>(path: string | null) {
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!!path);
+  const reload = useCallback(async (silent = false) => {
+    if (!path) return;
+    if (!silent) setLoading(true);
+    try { setData(await api<T>(path)); setError(null); }
+    catch (e) { setError((e as Error).message); }
+    finally { setLoading(false); }
+  }, [path]);
+  useEffect(() => { reload(); }, [reload]);
+  return { data, error, loading, reload, setData };
+}
