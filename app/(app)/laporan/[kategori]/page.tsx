@@ -92,6 +92,7 @@ export default function MutasiPage() {
               onToChange={(val) => { setTo(val); setPage(1); }}
               fromLabel={t('report.from')}
               toLabel={t('report.to')}
+              maxDate={defaultTo}
             />
           }
           actions={

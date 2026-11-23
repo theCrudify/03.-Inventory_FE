@@ -23,7 +23,7 @@ const buildNav = (m: Meta, t: (k: I18nKey) => string): NavGroup[] => [
   })),
   { label: t('nav.reports'), icon: BarChart3, items: m.refs('kategori_barang').map((r) => ({ href: `/laporan/${(r.meta as { slug: string }).slug}`, label: r.name })) },
   { label: t('nav.master'), icon: Boxes, items: [{ href: '/master/barang', label: t('nav.items') }, { href: '/master/mitra', label: t('nav.partners') }, { href: '/master/referensi', label: t('nav.refs') }] },
-  { label: t('nav.settings'), icon: Settings, admin: true, items: [{ href: '/pengaturan/perusahaan', label: t('nav.company') }, { href: '/pengaturan/pengguna', label: t('nav.users') }, { href: '/pengaturan/role', label: t('users.role') }, { href: '/pengaturan/status', label: t('settings.statusTitle') }, { href: '/pengaturan/audit-log', label: t('nav.auditLog') }] },
+  { label: t('nav.settings'), icon: Settings, admin: true, items: [{ href: '/pengaturan/perusahaan', label: t('nav.company') }, { href: '/pengaturan/pengguna', label: t('nav.users') }, { href: '/pengaturan/role', label: 'Role' }, { href: '/pengaturan/status', label: 'Status Dokumen' }, { href: '/pengaturan/audit-log', label: t('nav.auditLog') }] },
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -161,7 +161,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <button
             className="hidden lg:flex rounded-md p-1 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            title={sidebarCollapsed ? t('common.expandSidebar') : t('common.collapseSidebar')}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Menu className="size-4" />
           </button>
@@ -208,9 +208,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </header>
-        <main className="w-full flex-1 px-3 py-3 sm:px-5 sm:py-3.5 lg:px-6 max-w-7xl xl:max-w-[1360px] mx-auto print:max-w-none print:p-0">
-          <div key={path} className="page-enter">{children}</div>
-        </main>
+        <main className="w-full flex-1 px-3 py-3 sm:px-5 sm:py-3.5 lg:px-6 max-w-7xl xl:max-w-[1360px] mx-auto print:max-w-none print:p-0">{children}</main>
       </div>
     </div>
   );

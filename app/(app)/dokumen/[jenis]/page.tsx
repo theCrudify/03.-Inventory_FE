@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Badge, Button, Card, ErrorBox, FilterBar, FilterDateRange, PageHeader, Pagination, SearchInput, Select, Table } from '@/components/ui';
 import { qs, type Paged } from '@/lib/api';
 import { canWrite, useAuth } from '@/lib/auth';
-import { aju, date, money } from '@/lib/format';
+import { aju, date, money, today } from '@/lib/format';
 import { useMeta } from '@/lib/meta';
 import { usePrefs } from '@/lib/prefs';
 import type { CustomsListRow } from '@/lib/types';
@@ -82,6 +82,7 @@ export default function DocListPage() {
                 onToChange={(val) => { setTo(val); setPage(1); }}
                 fromLabel={t('report.from')}
                 toLabel={t('report.to')}
+                maxDate={today()}
               />
             </>
           }

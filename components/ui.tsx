@@ -143,6 +143,8 @@ export function FilterDateRange({
   onToChange,
   fromLabel,
   toLabel,
+  maxDate,
+  minDate,
   className,
 }: {
   from: string;
@@ -151,9 +153,31 @@ export function FilterDateRange({
   onToChange: (val: string) => void;
   fromLabel?: string;
   toLabel?: string;
+  maxDate?: string;
+  minDate?: string;
   className?: string;
 }) {
   const { t } = usePrefs();
+
+  const handleFromChange = (val: string) => {
+    onFromChange(val);
+    // If 'from' is picked after 'to', auto-sync 'to' so range is never inverted / backdated
+    if (val && to && val > to) {
+      onToChange(val);
+    }
+  };
+
+  const handleToChange = (val: string) => {
+    onToChange(val);
+    // If 'to' is picked before 'from' (backdated), auto-sync 'from' so range remains valid
+    if (val && from && val < from) {
+      onFromChange(val);
+    }
+  };
+
+  const fromMax = to && maxDate ? (to < maxDate ? to : maxDate) : (to || maxDate || undefined);
+  const toMin = from && minDate ? (from > minDate ? from : minDate) : (from || minDate || undefined);
+
   return (
     <div className={cx('inline-flex flex-wrap sm:flex-nowrap items-center gap-1.5', className)}>
       <div className="flex items-center gap-1.5">
@@ -164,7 +188,9 @@ export function FilterDateRange({
           type="date"
           aria-label={fromLabel ?? t('report.from')}
           value={from}
-          onChange={(e) => onFromChange(e.target.value)}
+          min={minDate || undefined}
+          max={fromMax}
+          onChange={(e) => handleFromChange(e.target.value)}
           className="h-8.5 w-34 text-xs font-normal"
         />
       </div>
@@ -177,7 +203,9 @@ export function FilterDateRange({
           type="date"
           aria-label={toLabel ?? t('report.to')}
           value={to}
-          onChange={(e) => onToChange(e.target.value)}
+          min={toMin}
+          max={maxDate || undefined}
+          onChange={(e) => handleToChange(e.target.value)}
           className="h-8.5 w-34 text-xs font-normal"
         />
       </div>
@@ -506,7 +534,6 @@ export function FormSkeleton() {
 }
 
 export function PageShellSkeleton({ label }: { label?: string }) {
-  const { t } = usePrefs();
   return (
     <div className="flex min-h-dvh bg-slate-50 dark:bg-slate-950" aria-busy="true">
       <aside className="hidden w-64 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 lg:flex">
@@ -517,7 +544,7 @@ export function PageShellSkeleton({ label }: { label?: string }) {
         <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Loader2 className="size-4 animate-spin text-teal-600 dark:text-teal-400" />
-            <span>{label ?? t('common.preparingData')}</span>
+            <span>{label ?? 'Menyiapkan data…'}</span>
           </div>
           <Skeleton className="h-8 w-36 rounded-lg" />
         </header>
