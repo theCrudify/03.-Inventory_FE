@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePrefs } from '@/lib/prefs';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
@@ -623,6 +624,12 @@ export function Modal({
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode; wide?: boolean;
 }) {
   const { t } = usePrefs();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -631,24 +638,44 @@ export function Modal({
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', k); document.body.style.overflow = prev; };
   }, [open, onClose]);
-  if (!open) return null;
-  return (
+
+  if (!open || !mounted) return null;
+
+  const content = (
     <div
-      className="anim-fade fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/40 p-4 backdrop-blur-[2px] sm:p-10"
+      className="anim-fade fixed inset-0 z-50 flex min-h-screen items-center justify-center overflow-y-auto bg-slate-950/45 p-4 backdrop-blur-[2px] sm:p-6"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div role="dialog" aria-modal="true" aria-label={title} className={cx('anim-pop w-full rounded-xl border border-slate-200 bg-white shadow-pop dark:border-slate-800 dark:bg-slate-900', wide ? 'max-w-4xl' : 'max-w-lg')}>
-        <div className="flex items-center justify-between gap-4 px-5 pb-3 pt-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={cx(
+          'anim-pop my-auto w-full rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-slate-900/10 dark:border-slate-800 dark:bg-slate-900 dark:ring-white/10',
+          wide ? 'max-w-4xl' : 'max-w-lg'
+        )}
+      >
+        <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-6 py-4 dark:border-slate-800/80">
           <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-slate-900 dark:text-slate-100">{title}</h2>
-          <button onClick={onClose} aria-label={t('common.close')} className="grid size-7 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200">
+          <button
+            onClick={onClose}
+            aria-label={t('common.close')}
+            className="grid size-7 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
+          >
             <X className="size-4" />
           </button>
         </div>
-        <div className="max-h-[calc(85vh-8rem)] overflow-y-auto px-5 pb-5 pt-1">{children}</div>
-        {footer && <div className="flex items-center justify-end gap-2 rounded-b-xl border-t border-slate-200/70 bg-slate-50/70 px-5 py-3 dark:border-slate-800 dark:bg-slate-900/60">{footer}</div>}
+        <div className="max-h-[calc(85vh-8rem)] overflow-y-auto px-6 py-5">{children}</div>
+        {footer && (
+          <div className="flex items-center justify-end gap-2.5 rounded-b-2xl border-t border-slate-100 bg-slate-50/70 px-6 py-3.5 dark:border-slate-800/80 dark:bg-slate-900/60">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
 
 /* =========================================================================
