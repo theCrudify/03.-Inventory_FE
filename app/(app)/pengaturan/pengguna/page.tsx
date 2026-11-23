@@ -3,25 +3,32 @@ import { CrudPage } from '@/components/crud-page';
 import { Badge } from '@/components/ui';
 import { date } from '@/lib/format';
 import { useMeta, type Tone } from '@/lib/meta';
+import { usePrefs } from '@/lib/prefs';
 import type { User } from '@/lib/types';
 
 export default function PenggunaPage() {
   const meta = useMeta();
-  const roles = meta.options('role', false);
+  const { t } = usePrefs();
+  const roles = meta.roleOptions();
   return (
     <CrudPage<User>
-      title="Pengguna" desc="Kelola akun dan hak akses (admin, operator, viewer)." path="/users" unpaged adminOnly
+      title={t('users.title')}
+      desc={t('users.desc')}
+      path="/users"
+      adminOnly
+      defaultSort={{ key: 'name', dir: 'asc' }}
+      filter={{ name: 'role', label: t('users.role'), options: roles }}
       columns={[
-        { key: 'name', label: 'Nama', render: (r) => <span className="font-medium text-slate-800">{r.name}</span> },
-        { key: 'email', label: 'Email' },
-        { key: 'role', label: 'Role', render: (r) => <Badge tone={meta.metaOf<{ tone?: Tone }>('role', r.role).tone}>{meta.label('role', r.role)}</Badge> },
-        { key: 'createdAt', label: 'Dibuat', render: (r) => date(r.createdAt) },
+        { key: 'name', sortable: true, label: t('users.name'), render: (r) => <span className="font-medium text-slate-800 dark:text-slate-200">{r.name}</span> },
+        { key: 'email', sortable: true, label: t('users.email') },
+        { key: 'role', sortable: true, label: t('users.role'), render: (r) => <Badge tone={meta.role(r.role).tone as Tone}>{meta.role(r.role).label}</Badge> },
+        { key: 'createdAt', sortable: true, label: t('doc.createdAt'), render: (r) => date(r.createdAt) },
       ]}
       fields={[
-        { name: 'name', label: 'Nama', required: true, full: true },
-        { name: 'email', label: 'Email', type: 'email', required: true },
-        { name: 'role', label: 'Role', type: 'select', options: roles, required: true },
-        { name: 'password', label: 'Password', type: 'password', required: true, createOnly: true, hint: 'Minimal 8 karakter', full: true },
+        { name: 'name', label: t('users.name'), required: true, full: true },
+        { name: 'email', label: t('users.email'), type: 'email', required: true },
+        { name: 'role', label: t('users.role'), type: 'select', options: roles, required: true },
+        { name: 'password', label: t('users.password'), type: 'password', required: true, createOnly: true, hint: t('users.passwordHint'), full: true },
       ]}
     />
   );

@@ -6,7 +6,7 @@ export type Item = { id: number; code: string; name: string; category: string; h
 export type Partner = { id: number; kind: string; name: string; npwp: string | null; address: string | null; countryCode: string };
 export type TradeLine = { itemId: number; qty: number; unitPrice: number };
 export type TradeDoc = { id: number; kind: string; number: string; date: string; partnerId: number; partnerName?: string; currency: string; incoterm: string | null; lines: TradeLine[]; amount?: string; total?: string };
-export type DocStatus = string; // refs: status_dokumen
+export type DocStatus = string; // document_statuses.code
 export type Duties = { bm: number; ppn: number; pph: number; total: number; treatment: string };
 export type CustomsListRow = {
   id: number; bcType: string; ajuNumber: string; registrationNumber: string | null; registrationDate: string | null;

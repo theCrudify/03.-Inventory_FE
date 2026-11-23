@@ -1,12 +1,21 @@
 'use client';
 import { createContext, useContext, useEffect, useMemo } from 'react';
-import { Spinner, ErrorBox } from '@/components/ui';
+import { ErrorBox, PageShellSkeleton } from '@/components/ui';
+import { usePrefs } from './prefs';
 import { useFetch } from './use-fetch';
 
 // Everything descriptive the UI shows (labels, options, BC rules, company/app profile) comes from
 // GET /meta, i.e. from the master tables. Nothing here is hardcoded business data.
 export type RefRow = { id: number; type: string; code: string; name: string; meta: Record<string, unknown> | null; sort: number };
 export type Tone = 'gray' | 'blue' | 'amber' | 'violet' | 'green' | 'red' | 'teal';
+/** Badge palette (styling only), shared by role and status masters. */
+export const TONES: Tone[] = ['gray', 'blue', 'amber', 'violet', 'green', 'red', 'teal'];
+/** Rows of the `roles` and `document_statuses` master tables. Behaviour is boolean columns. */
+export type RoleRow = { code: string; name: string; description: string; tone: Tone; canWrite: boolean; isAdmin: boolean; sort: number };
+export type StatusRow = {
+  code: string; name: string; tone: Tone; initial: boolean; editable: boolean; inFlight: boolean;
+  registered: boolean; approved: boolean; rejected: boolean; sort: number;
+};
 export type BcType = {
   code: string; label: string; title: string; direction: string; partnerKind: string; ceisaCode: string; slug: string;
   international: boolean; defaultOffice: string; approvalCode: string; approvalMessage: string;
@@ -18,16 +27,15 @@ export type AppInfo = {
   footnote: string | null; printHeader: string; printFootnote: string | null;
   demo: { password: string; accounts: { email: string; label: string; description: string }[] } | null;
 };
-type MetaPayload = { company: Company; app: AppInfo; refs: Record<string, RefRow[]> };
+type MetaPayload = { company: Company; app: AppInfo; refs: Record<string, RefRow[]>; roles: RoleRow[]; statuses: StatusRow[] };
 
-type StatusMeta = { tone?: Tone; initial?: boolean; editable?: boolean; inFlight?: boolean; registered?: boolean; approved?: boolean; rejected?: boolean };
-const statusOf = (r: RefRow | undefined, code: string) => {
-  const m = (r?.meta ?? {}) as StatusMeta;
-  return {
-    code, label: r?.name ?? code, tone: m.tone ?? 'gray', initial: !!m.initial, editable: !!m.editable, inFlight: !!m.inFlight,
-    registered: !!m.registered, approved: !!m.approved, rejected: !!m.rejected,
-  };
-};
+const statusOf = (r: StatusRow | undefined, code: string) => ({
+  code, label: r?.name ?? code, tone: r?.tone ?? 'gray', initial: !!r?.initial, editable: !!r?.editable, inFlight: !!r?.inFlight,
+  registered: !!r?.registered, approved: !!r?.approved, rejected: !!r?.rejected,
+});
+const roleOf = (r: RoleRow | undefined, code: string) => ({
+  code, label: r?.name ?? code, description: r?.description ?? '', tone: r?.tone ?? 'gray', canWrite: !!r?.canWrite, isAdmin: !!r?.isAdmin,
+});
 
 function build(m: MetaPayload) {
   const refs = (type: string) => m.refs[type] ?? [];
@@ -48,9 +56,12 @@ function build(m: MetaPayload) {
     bcTypes,
     bc: (code: string) => bcTypes.find((b) => b.code === code),
     bcBySlug: (slug: string) => bcTypes.find((b) => b.slug === slug),
-    status: (code: string) => statusOf(find('status_dokumen', code), code),
+    status: (code: string) => statusOf(m.statuses.find((s) => s.code === code), code),
     /** Statuses in master order, with their lifecycle flags. */
-    statuses: () => refs('status_dokumen').map((r) => statusOf(r, r.code)),
+    statuses: () => m.statuses.map((s) => statusOf(s, s.code)),
+    statusOptions: () => m.statuses.map((s) => ({ value: s.code, label: s.name })),
+    role: (code: string) => roleOf(m.roles.find((r) => r.code === code), code),
+    roleOptions: () => m.roles.map((r) => ({ value: r.code, label: r.name })),
     direction: (code: string) => {
       const r = find('arah_dokumen', code);
       const m = (r?.meta ?? {}) as Partial<{ partyLabel: string; shortLabel: string; tone: Tone; countryField: string; countryLabel: string }>;
@@ -59,16 +70,17 @@ function build(m: MetaPayload) {
     duty: (code: string) => ({ label: find('perlakuan_pungutan', code)?.name ?? code, charged: !!(find('perlakuan_pungutan', code)?.meta as { charged?: boolean })?.charged }),
   };
 }
-export type Meta = ReturnType<typeof build>;
+export type Meta = ReturnType<typeof build> & { /** Re-read master data after an admin edits it. */ reload: () => void };
 
 const Ctx = createContext<Meta | null>(null);
 
 export function MetaProvider({ children }: { children: React.ReactNode }) {
-  const { data, error } = useFetch<MetaPayload>('/meta');
-  const meta = useMemo(() => (data ? build(data) : null), [data]);
+  const { data, error, reload } = useFetch<MetaPayload>('/meta');
+  const { t } = usePrefs();
+  const meta = useMemo<Meta | null>(() => (data ? { ...build(data), reload: () => reload(true) } : null), [data, reload]);
   useEffect(() => { if (meta) document.title = meta.app.name; }, [meta]);
   if (error) return <div className="p-6"><ErrorBox text={error} /></div>;
-  if (!meta) return <Spinner label="Memuat data master…" />;
+  if (!meta) return <PageShellSkeleton label={t('common.loadingMaster')} />;
   return <Ctx.Provider value={meta}>{children}</Ctx.Provider>;
 }
 

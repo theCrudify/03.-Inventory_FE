@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Suspense } from 'react';
-import { Spinner, Toaster } from '@/components/ui';
+import { PageShellSkeleton, Toaster } from '@/components/ui';
 import { AuthProvider } from '@/lib/auth';
+import { PrefsProvider } from '@/lib/prefs';
 import './globals.css';
 
 const sans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
@@ -13,11 +14,12 @@ export const metadata: Metadata = { title: 'IT Inventory', description: 'IT Inve
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="id" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased">
-        {/* Fully client-rendered app: URL hooks resolve at runtime. */}
-        <Suspense fallback={<Spinner label="Memuat…" />}><AuthProvider>{children}</AuthProvider></Suspense>
-        <Toaster />
+        <PrefsProvider>
+          <Suspense fallback={<PageShellSkeleton />}><AuthProvider>{children}</AuthProvider></Suspense>
+          <Toaster />
+        </PrefsProvider>
       </body>
     </html>
   );

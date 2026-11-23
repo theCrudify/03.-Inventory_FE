@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { api, ApiError, type Paged } from '@/lib/api';
 import { idr, money, num, today } from '@/lib/format';
 import { useMeta, type BcType } from '@/lib/meta';
+import { usePrefs } from '@/lib/prefs';
 import type { CustomsDoc, Header, TradeDoc } from '@/lib/types';
 import { useFetch } from '@/lib/use-fetch';
 import { useItems, usePartners } from '@/lib/use-options';
@@ -20,6 +21,7 @@ const emptyLine = (): Line => ({ itemId: '', hsCode: '', qty: '', unitPrice: '' 
 export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc }) {
   const router = useRouter();
   const meta = useMeta();
+  const { t } = usePrefs();
   const dir = meta.direction(bc.direction);
   const duty = meta.duty(bc.duty);
   const partners = usePartners(bc.partnerKind);
@@ -48,14 +50,14 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
   const setCurrency = (currency: string) => setF((s) => ({ ...s, currency, kurs: kursOf(currency) }));
 
   function applyTrade(id: string) {
-    const t = trade.find((x) => String(x.id) === id);
-    if (!t) return setF((s) => ({ ...s, tradeDocId: '' }));
+    const tr = trade.find((x) => String(x.id) === id);
+    if (!tr) return setF((s) => ({ ...s, tradeDocId: '' }));
     setF((s) => ({
-      ...s, tradeDocId: id, partnerId: String(t.partnerId), currency: t.currency, kurs: kursOf(t.currency),
-      lines: t.lines.map((l) => ({ itemId: String(l.itemId), hsCode: items.find((i) => i.id === l.itemId)?.hsCode ?? '', qty: String(l.qty), unitPrice: String(l.unitPrice) })),
+      ...s, tradeDocId: id, partnerId: String(tr.partnerId), currency: tr.currency, kurs: kursOf(tr.currency),
+      lines: tr.lines.map((l) => ({ itemId: String(l.itemId), hsCode: items.find((i) => i.id === l.itemId)?.hsCode ?? '', qty: String(l.qty), unitPrice: String(l.unitPrice) })),
       header: {
-        ...s.header, incoterm: t.incoterm ?? s.header.incoterm,
-        dokumen: [{ jenis: meta.metaOf<{ documentType?: string }>('jenis_sumber', t.kind).documentType ?? first('jenis_dokumen'), nomor: t.number, tanggal: t.date }, ...(s.header.dokumen ?? []).filter((d) => d.nomor !== t.number)],
+        ...s.header, incoterm: tr.incoterm ?? s.header.incoterm,
+        dokumen: [{ jenis: meta.metaOf<{ documentType?: string }>('jenis_sumber', tr.kind).documentType ?? first('jenis_dokumen'), nomor: tr.number, tanggal: tr.date }, ...(s.header.dokumen ?? []).filter((d) => d.nomor !== tr.number)],
       },
     }));
   }
@@ -64,10 +66,10 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
     const kurs = Number(f.kurs) || 0;
     let value = 0, bm = 0, ppn = 0, pph = 0;
     for (const l of f.lines) {
-      const t = meta.metaOf<Partial<Tariff>>('hs', l.hsCode);
+      const tr = meta.metaOf<Partial<Tariff>>('hs', l.hsCode);
       const v = (Number(l.qty) * Number(l.unitPrice) || 0) * kurs;
-      const lineBm = v * (t.bm ?? 0) / 100;
-      value += v; bm += lineBm; ppn += (v + lineBm) * (t.ppn ?? 0) / 100; pph += (v + lineBm) * (t.pph ?? 0) / 100;
+      const lineBm = v * (tr.bm ?? 0) / 100;
+      value += v; bm += lineBm; ppn += (v + lineBm) * (tr.ppn ?? 0) / 100; pph += (v + lineBm) * (tr.pph ?? 0) / 100;
     }
     return { value: kurs ? value / kurs : 0, idr: value, bm, ppn, pph };
   }, [f.lines, f.kurs, meta]);
@@ -84,7 +86,7 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
       const doc = existing
         ? await api<CustomsDoc>(`/customs-docs/${existing.id}`, { method: 'PUT', json: body })
         : await api<CustomsDoc>('/customs-docs', { method: 'POST', json: body });
-      toast(existing ? 'Perubahan disimpan' : 'Draft dokumen dibuat');
+      toast(existing ? t('common.saved') : t('doc.draftCreated'));
       router.push(`/dokumen/${bc.slug}/${doc.id}`);
     } catch (err) {
       setError((err as Error).message);
@@ -95,149 +97,206 @@ export function DocForm({ bc, existing }: { bc: BcType; existing?: CustomsDoc })
 
   const docList = h.dokumen ?? [], conts = h.kontainer ?? [];
   const opt = meta.options;
+  const sections = [
+    { id: 'sec-1', n: 1, title: t('form.secGeneral') },
+    { id: 'sec-2', n: 2, title: t('form.secTransport') },
+    { id: 'sec-3', n: 3, title: t('form.secPackaging') },
+    ...(bc.requiresGuarantee ? [{ id: 'sec-4', n: 4, title: t('form.secGuarantee') }] : []),
+    { id: 'sec-5', n: bc.requiresGuarantee ? 5 : 4, title: t('form.secSupporting') },
+    { id: 'sec-6', n: bc.requiresGuarantee ? 6 : 5, title: t('form.secItems') },
+  ];
+  const suppIdx = bc.requiresGuarantee ? 5 : 4;
+  const itemsIdx = bc.requiresGuarantee ? 6 : 5;
+
   return (
     <form onSubmit={save}>
-      <PageHeader back={`/dokumen/${bc.slug}`} title={`${existing ? 'Ubah' : 'Buat'} ${bc.label}`} desc={bc.title}
-        actions={<><Button variant="secondary" href={`/dokumen/${bc.slug}`}>Batal</Button><Button type="submit" loading={busy}>Simpan Draft</Button></>} />
+      <PageHeader back={`/dokumen/${bc.slug}`} title={`${existing ? t('form.editTitle') : t('form.createTitle')} ${bc.label}`} desc={bc.title}
+        actions={<><Button variant="secondary" href={`/dokumen/${bc.slug}`}>{t('common.cancel')}</Button><Button type="submit" loading={busy}>{t('form.saveDraft')}</Button></>} />
       {error && <div className="mb-4"><ErrorBox text={error + (errors.length ? ': ' + errors.map((x) => `${x.path} ${x.message}`).join('; ') : '')} /></div>}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <Card>
-            <CardHeader title="Data Umum" />
+          <Card id="sec-1">
+            <CardHeader index={1} title={t('form.secGeneral')} />
             <div className="grid gap-3 p-5 sm:grid-cols-2">
-              <Field label={`${meta.label('jenis_sumber', bc.sourceDoc)} (opsional)`} hint="Isi otomatis mitra, valuta, dan barang" className="sm:col-span-2">
-                <Select value={f.tradeDocId} onChange={(e) => applyTrade(e.target.value)} placeholder="— Tanpa sumber dokumen —"
-                  options={trade.map((t) => ({ value: t.id, label: `${t.number} · ${t.partnerName}` }))} />
+              <Field index="1.1" label={`${meta.label('jenis_sumber', bc.sourceDoc)} (${t('common.optional')})`} hint={t('form.autoFillHint')} className="sm:col-span-2">
+                <Select value={f.tradeDocId} onChange={(e) => applyTrade(e.target.value)} placeholder={t('form.noSourceDoc')}
+                  options={trade.map((tr) => ({ value: tr.id, label: `${tr.number} · ${tr.partnerName}` }))} />
               </Field>
-              <Field label={`${dir.partyLabel} (${meta.label('jenis_mitra', bc.partnerKind)})`} required>
-                <Select required value={f.partnerId} onChange={(e) => setF({ ...f, partnerId: e.target.value })} placeholder="Pilih mitra" options={partners.map((p) => ({ value: p.id, label: `${p.name} (${p.countryCode})` }))} />
+              <Field index="1.2" label={`${dir.partyLabel} (${meta.label('jenis_mitra', bc.partnerKind)})`} required>
+                <Select required value={f.partnerId} onChange={(e) => setF({ ...f, partnerId: e.target.value })} placeholder={t('form.selectPartner')} options={partners.map((p) => ({ value: p.id, label: `${p.name} (${p.countryCode})` }))} />
               </Field>
-              <Field label="Kantor Pabean" required><Select required value={f.officeCode} onChange={(e) => setF({ ...f, officeCode: e.target.value })} options={opt('kantor')} /></Field>
-              <Field label="Valuta" required><Select required value={f.currency} onChange={(e) => setCurrency(e.target.value)} options={opt('valuta')} /></Field>
-              <Field label="Kurs (NDPBM)" required hint="Default dari master valuta"><Input required type="number" step="any" min="0" value={f.kurs} onChange={(e) => setF({ ...f, kurs: e.target.value })} /></Field>
+              <Field index="1.3" label={t('doc.customsOffice')} required><Select required value={f.officeCode} onChange={(e) => setF({ ...f, officeCode: e.target.value })} options={opt('kantor')} /></Field>
+              <Field index="1.4" label={t('form.currency')} required><Select required value={f.currency} onChange={(e) => setCurrency(e.target.value)} options={opt('valuta')} /></Field>
+              <Field index="1.5" label={t('form.kurs')} required hint={t('form.kursHint')}><Input required type="number" step="any" min="0" value={f.kurs} onChange={(e) => setF({ ...f, kurs: e.target.value })} /></Field>
               {bc.international
-                ? <Field label="Incoterm"><Select value={h.incoterm ?? ''} onChange={(e) => setH({ incoterm: e.target.value })} placeholder="-" options={opt('incoterm')} /></Field>
-                : <Field label="Tujuan Pengiriman" className="sm:col-span-2"><Input value={h.tujuanPengiriman ?? ''} onChange={(e) => setH({ tujuanPengiriman: e.target.value })} /></Field>}
+                ? <Field index="1.6" label={t('form.incoterm')}><Select value={h.incoterm ?? ''} onChange={(e) => setH({ incoterm: e.target.value })} placeholder="-" options={opt('incoterm')} /></Field>
+                : <Field index="1.6" label={t('form.destDelivery')} className="sm:col-span-2"><Input value={h.tujuanPengiriman ?? ''} onChange={(e) => setH({ tujuanPengiriman: e.target.value })} /></Field>}
             </div>
           </Card>
 
-          <Card>
-            <CardHeader title="Pengangkutan" />
+          <Card id="sec-2">
+            <CardHeader index={2} title={t('form.secTransport')} />
             <div className="grid gap-3 p-5 sm:grid-cols-2">
-              <Field label="Cara Angkut"><Select value={h.caraAngkut ?? ''} onChange={(e) => setH({ caraAngkut: e.target.value })} options={opt('cara_angkut', false)} /></Field>
-              <Field label="Nama Sarana Pengangkut" required hint="Wajib menurut validasi CEISA">
+              <Field index="2.1" label={t('form.transportMode')}><Select value={h.caraAngkut ?? ''} onChange={(e) => setH({ caraAngkut: e.target.value })} options={opt('cara_angkut', false)} /></Field>
+              <Field index="2.2" label={t('form.carrierName')} required hint={t('form.carrierHint')}>
                 <Input value={h.pengangkut ?? ''} onChange={(e) => setH({ pengangkut: e.target.value })} />
               </Field>
               {transport.usesPlate
-                ? <Field label="Nomor Polisi"><Input value={h.nomorPolisi ?? ''} onChange={(e) => setH({ nomorPolisi: e.target.value })} /></Field>
-                : <Field label="Nomor Voyage / Flight"><Input value={h.nomorVoyage ?? ''} onChange={(e) => setH({ nomorVoyage: e.target.value })} /></Field>}
+                ? <Field index="2.3" label={t('form.plateNo')}><Input value={h.nomorPolisi ?? ''} onChange={(e) => setH({ nomorPolisi: e.target.value })} /></Field>
+                : <Field index="2.3" label={t('form.voyageNo')}><Input value={h.nomorVoyage ?? ''} onChange={(e) => setH({ nomorVoyage: e.target.value })} /></Field>}
               {bc.international && <>
-                <Field label={dir.countryLabel}>
+                <Field index="2.4" label={dir.countryLabel}>
                   <Select value={String((h as Record<string, unknown>)[dir.countryField] ?? '')} placeholder="-" options={opt('negara')}
                     onChange={(e) => setH({ [dir.countryField]: e.target.value } as Partial<Header>)} />
                 </Field>
                 {transport.usesPort && <>
-                  <Field label="Pelabuhan Muat"><Select value={h.pelabuhanMuat ?? ''} onChange={(e) => setH({ pelabuhanMuat: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
-                  <Field label="Pelabuhan Tujuan"><Select value={h.pelabuhanTujuan ?? ''} onChange={(e) => setH({ pelabuhanTujuan: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
+                  <Field index="2.5" label={t('form.loadPort')}><Select value={h.pelabuhanMuat ?? ''} onChange={(e) => setH({ pelabuhanMuat: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
+                  <Field index="2.6" label={t('form.destPort')}><Select value={h.pelabuhanTujuan ?? ''} onChange={(e) => setH({ pelabuhanTujuan: e.target.value })} placeholder="-" options={opt('pelabuhan')} /></Field>
                 </>}
               </>}
             </div>
           </Card>
 
-          <Card>
-            <CardHeader title="Kemasan & Kontainer" />
-            <div className="grid gap-3 p-5 sm:grid-cols-4">
-              <Field label="Jumlah Kemasan"><Input type="number" min="0" value={h.kemasan?.jumlah ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jumlah: Number(e.target.value) } })} /></Field>
-              <Field label="Jenis Kemasan"><Select value={h.kemasan?.jenis ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jenis: e.target.value } })} options={opt('kemasan')} /></Field>
-              <Field label="Bruto (kg)"><Input type="number" step="any" min="0" value={h.bruto ?? ''} onChange={(e) => setH({ bruto: Number(e.target.value) })} /></Field>
-              <Field label="Netto (kg)"><Input type="number" step="any" min="0" value={h.netto ?? ''} onChange={(e) => setH({ netto: Number(e.target.value) })} /></Field>
+          <Card id="sec-3">
+            <CardHeader index={3} title={t('form.secPackaging')} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-5">
+              <Field index="3.1" label={t('form.packCount')}><Input type="number" min="0" value={h.kemasan?.jumlah ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jumlah: Number(e.target.value) } })} /></Field>
+              <Field index="3.2" label={t('form.packType')}><Select value={h.kemasan?.jenis ?? ''} onChange={(e) => setH({ kemasan: { ...h.kemasan, jenis: e.target.value } })} options={opt('kemasan')} /></Field>
+              <Field index="3.3" label={t('form.bruto')}><Input type="number" step="any" min="0" value={h.bruto ?? ''} onChange={(e) => setH({ bruto: Number(e.target.value) })} /></Field>
+              <Field index="3.4" label={t('form.netto')}><Input type="number" step="any" min="0" value={h.netto ?? ''} onChange={(e) => setH({ netto: Number(e.target.value) })} /></Field>
             </div>
             {transport.usesContainer && (
-              <div className="border-t border-slate-100 px-5 py-4">
-                <div className="mb-2 flex items-center justify-between text-xs font-medium text-slate-600">Kontainer
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setH({ kontainer: [...conts, { nomor: '', ukuran: first('ukuran_kontainer'), tipe: first('tipe_kontainer') }] })}><Plus className="size-3.5" />Tambah</Button></div>
-                {conts.map((k, i) => (
-                  <div key={i} className="mb-2 grid grid-cols-[1fr_8rem_6rem_auto] gap-2">
-                    <Input aria-label="Nomor kontainer" value={k.nomor} onChange={(e) => setH({ kontainer: conts.map((x, j) => (j === i ? { ...x, nomor: e.target.value } : x)) })} />
-                    <Select aria-label="Ukuran" value={k.ukuran} onChange={(e) => setH({ kontainer: conts.map((x, j) => (j === i ? { ...x, ukuran: e.target.value } : x)) })} options={opt('ukuran_kontainer', false)} />
-                    <Select aria-label="Tipe" value={k.tipe} onChange={(e) => setH({ kontainer: conts.map((x, j) => (j === i ? { ...x, tipe: e.target.value } : x)) })} options={meta.refs('tipe_kontainer').map((r) => ({ value: r.code, label: r.code }))} />
-                    <Button type="button" variant="ghost" onClick={() => setH({ kontainer: conts.filter((_, j) => j !== i) })} aria-label="Hapus kontainer"><Trash2 className="size-4 text-red-500" /></Button>
-                  </div>
-                ))}
-                {!conts.length && <p className="text-xs text-slate-400">Belum ada kontainer.</p>}
+              <div className="border-t border-slate-100 px-5 py-4 dark:border-slate-800">
+                <div className="mb-3 flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <span>{t('form.containers')} ({conts.length})</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setH({ kontainer: [...conts, { nomor: '', ukuran: first('ukuran_kontainer'), tipe: first('tipe_kontainer') }] })}>
+                    <Plus className="size-3.5" />{t('common.add')}
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {conts.map((k, i) => (
+                    <div key={i} className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-2.5 sm:border-0 sm:bg-transparent sm:p-0 sm:grid sm:grid-cols-[2rem_1fr_8rem_6rem_auto] sm:items-center sm:gap-2">
+                      <span className="hidden sm:block text-center font-mono text-xs font-semibold text-slate-400 dark:text-slate-500">#{i + 1}</span>
+                      <div className="space-y-1 sm:space-y-0">
+                        <span className="text-[11px] font-medium text-slate-500 sm:hidden">No. Kontainer #{i + 1}</span>
+                        <Input aria-label={`Nomor kontainer ${i + 1}`} placeholder="Nomor kontainer" value={k.nomor} onChange={(e) => setH({ kontainer: conts.map((x, j) => (j === i ? { ...x, nomor: e.target.value } : x)) })} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 sm:contents mt-2 sm:mt-0">
+                        <Select aria-label={`Ukuran ${i + 1}`} value={k.ukuran} onChange={(e) => setH({ kontainer: conts.map((x, j) => (j === i ? { ...x, ukuran: e.target.value } : x)) })} options={opt('ukuran_kontainer', false)} />
+                        <Select aria-label={`Tipe ${i + 1}`} value={k.tipe} onChange={(e) => setH({ kontainer: conts.map((x, j) => (j === i ? { ...x, tipe: e.target.value } : x)) })} options={meta.refs('tipe_kontainer').map((r) => ({ value: r.code, label: r.code }))} />
+                      </div>
+                      <div className="flex justify-end pt-1 sm:pt-0">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setH({ kontainer: conts.filter((_, j) => j !== i) })} aria-label={t('common.delete')}><Trash2 className="size-4 text-red-500" /></Button>
+                      </div>
+                    </div>
+                  ))}
+                  {!conts.length && <p className="text-xs text-slate-400 dark:text-slate-500">{t('form.noContainers')}</p>}
+                </div>
               </div>
             )}
           </Card>
 
           {bc.requiresGuarantee && (
-            <Card>
-              <CardHeader title="Jaminan" desc={`${bc.label} wajib dilindungi jaminan`} />
+            <Card id="sec-4">
+              <CardHeader index={4} title={t('form.secGuarantee')} desc={t('form.guaranteeDesc', { label: bc.label })} />
               <div className="grid gap-3 p-5 sm:grid-cols-2">
-                <Field label="Jenis Jaminan"><Select value={h.jaminan?.jenis ?? ''} placeholder="-" onChange={(e) => setH({ jaminan: { ...h.jaminan, jenis: e.target.value } })} options={opt('jenis_jaminan', false)} /></Field>
-                <Field label="Nomor Jaminan"><Input value={h.jaminan?.nomor ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nomor: e.target.value } })} /></Field>
-                <Field label="Penjamin"><Input value={h.jaminan?.penjamin ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, penjamin: e.target.value } })} /></Field>
-                <Field label="Nilai Jaminan (Rp)"><Input type="number" min="0" value={h.jaminan?.nilai ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nilai: Number(e.target.value) } })} /></Field>
-                <Field label="Jatuh Tempo"><Input type="date" value={h.jaminan?.jatuhTempo ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, jatuhTempo: e.target.value } })} /></Field>
+                <Field index="4.1" label={t('form.guaranteeType')}><Select value={h.jaminan?.jenis ?? ''} placeholder="-" onChange={(e) => setH({ jaminan: { ...h.jaminan, jenis: e.target.value } })} options={opt('jenis_jaminan', false)} /></Field>
+                <Field index="4.2" label={t('form.guaranteeNo')}><Input value={h.jaminan?.nomor ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nomor: e.target.value } })} /></Field>
+                <Field index="4.3" label={t('form.guarantor')}><Input value={h.jaminan?.penjamin ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, penjamin: e.target.value } })} /></Field>
+                <Field index="4.4" label={t('form.guaranteeValue')}><Input type="number" min="0" value={h.jaminan?.nilai ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, nilai: Number(e.target.value) } })} /></Field>
+                <Field index="4.5" label={t('form.dueDate')}><Input type="date" value={h.jaminan?.jatuhTempo ?? ''} onChange={(e) => setH({ jaminan: { ...h.jaminan, jatuhTempo: e.target.value } })} /></Field>
               </div>
             </Card>
           )}
 
-          <Card>
-            <CardHeader title="Dokumen Pelengkap" action={<Button type="button" variant="ghost" size="sm" onClick={() => setH({ dokumen: [...docList, { jenis: first('jenis_dokumen'), nomor: '', tanggal: today() }] })}><Plus className="size-3.5" />Tambah</Button>} />
+          <Card id="sec-5">
+            <CardHeader index={suppIdx} title={t('form.secSupporting')} action={<Button type="button" variant="ghost" size="sm" onClick={() => setH({ dokumen: [...docList, { jenis: first('jenis_dokumen'), nomor: '', tanggal: today() }] })}><Plus className="size-3.5" />{t('common.add')}</Button>} />
             <div className="space-y-2 p-5">
               {docList.map((d, i) => (
-                <div key={i} className="grid gap-2 sm:grid-cols-[14rem_1fr_10rem_auto]">
-                  <Select aria-label="Jenis dokumen" value={d.jenis} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, jenis: e.target.value } : x)) })} options={opt('jenis_dokumen', false)} />
-                  <Input aria-label="Nomor dokumen" placeholder="Nomor" value={d.nomor} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, nomor: e.target.value } : x)) })} />
-                  <Input aria-label="Tanggal" type="date" value={d.tanggal} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, tanggal: e.target.value } : x)) })} />
-                  <Button type="button" variant="ghost" onClick={() => setH({ dokumen: docList.filter((_, j) => j !== i) })} aria-label="Hapus dokumen"><Trash2 className="size-4 text-red-500" /></Button>
+                <div key={i} className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-2.5 sm:border-0 sm:bg-transparent sm:p-0 sm:grid sm:items-center sm:gap-2 sm:grid-cols-[2rem_13rem_1fr_9.5rem_auto]">
+                  <span className="hidden sm:block text-center font-mono text-xs font-semibold text-slate-400 dark:text-slate-500">#{i + 1}</span>
+                  <div className="space-y-1 sm:space-y-0">
+                    <span className="text-[11px] font-medium text-slate-500 sm:hidden">Jenis Dokumen #{i + 1}</span>
+                    <Select aria-label={`Jenis dokumen ${i + 1}`} value={d.jenis} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, jenis: e.target.value } : x)) })} options={opt('jenis_dokumen', false)} />
+                  </div>
+                  <div className="space-y-1 sm:space-y-0 mt-2 sm:mt-0">
+                    <span className="text-[11px] font-medium text-slate-500 sm:hidden">{t('trade.number')}</span>
+                    <Input aria-label={`Nomor dokumen ${i + 1}`} placeholder={t('trade.number')} value={d.nomor} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, nomor: e.target.value } : x)) })} />
+                  </div>
+                  <div className="space-y-1 sm:space-y-0 mt-2 sm:mt-0">
+                    <span className="text-[11px] font-medium text-slate-500 sm:hidden">{t('trade.date')}</span>
+                    <Input aria-label={`Tanggal ${i + 1}`} type="date" value={d.tanggal} onChange={(e) => setH({ dokumen: docList.map((x, j) => (j === i ? { ...x, tanggal: e.target.value } : x)) })} />
+                  </div>
+                  <div className="flex justify-end pt-1 sm:pt-0">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setH({ dokumen: docList.filter((_, j) => j !== i) })} aria-label={t('common.delete')}><Trash2 className="size-4 text-red-500" /></Button>
+                  </div>
                 </div>
               ))}
-              {!docList.length && <p className="text-xs text-slate-400">Belum ada dokumen pelengkap.</p>}
+              {!docList.length && <p className="text-xs text-slate-400 dark:text-slate-500">{t('form.noSupportingDocs')}</p>}
             </div>
           </Card>
         </div>
 
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          <Card>
-            <CardHeader title="Ringkasan" />
-            <dl className="space-y-2 p-5 text-sm">
-              <div className="flex justify-between"><dt className="text-slate-500">Jumlah barang</dt><dd>{f.lines.length} pos</dd></div>
-              <div className="flex justify-between"><dt className="text-slate-500">Nilai ({f.currency})</dt><dd className="tabular-nums">{money(totals.value, f.currency)}</dd></div>
-              <div className="flex justify-between"><dt className="text-slate-500">Nilai pabean</dt><dd className="tabular-nums">{idr(totals.idr)}</dd></div>
-              {duty.charged && <>
-                <div className="border-t border-slate-100 pt-2 text-xs font-medium text-slate-500">Estimasi pungutan ({duty.label.toLowerCase()})</div>
-                <div className="flex justify-between"><dt className="text-slate-500">Bea Masuk</dt><dd className="tabular-nums">{idr(totals.bm)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate-500">PPN</dt><dd className="tabular-nums">{idr(totals.ppn)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate-500">PPh Pasal 22</dt><dd className="tabular-nums">{idr(totals.pph)}</dd></div>
-              </>}
+        <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          <Card className="overflow-hidden">
+            <CardHeader title={t('form.secSummary')} />
+            <dl className="space-y-2.5 p-5 text-sm">
+              <div className="flex justify-between items-center"><dt className="text-slate-500 dark:text-slate-400">{t('form.itemCount')}</dt><dd className="font-semibold text-slate-800 dark:text-slate-200">{f.lines.length} {t('form.pos')}</dd></div>
+              <div className="flex justify-between items-center"><dt className="text-slate-500 dark:text-slate-400">{t('doc.value')} ({f.currency})</dt><dd className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{money(totals.value, f.currency)}</dd></div>
+              <div className="flex justify-between items-center rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/60"><dt className="font-medium text-slate-700 dark:text-slate-300">{t('doc.customsValue')}</dt><dd className="font-bold tabular-nums text-teal-700 dark:text-teal-400">{idr(totals.idr)}</dd></div>
+              {duty.charged && (
+                <div className="border-t border-slate-100 pt-3 dark:border-slate-800/80 space-y-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('form.dutyEst', { label: duty.label.toLowerCase() })}</div>
+                  <div className="flex justify-between text-xs"><dt className="text-slate-500 dark:text-slate-400">{t('form.bm')}</dt><dd className="tabular-nums font-medium">{idr(totals.bm)}</dd></div>
+                  <div className="flex justify-between text-xs"><dt className="text-slate-500 dark:text-slate-400">{t('form.ppn')}</dt><dd className="tabular-nums font-medium">{idr(totals.ppn)}</dd></div>
+                  <div className="flex justify-between text-xs"><dt className="text-slate-500 dark:text-slate-400">{t('form.pph')}</dt><dd className="tabular-nums font-medium">{idr(totals.pph)}</dd></div>
+                </div>
+              )}
             </dl>
+          </Card>
+          <Card className="hidden lg:block overflow-hidden">
+            <CardHeader title={t('form.indexProgress')} />
+            <ol className="divide-y divide-slate-100 text-xs dark:divide-slate-800">
+              {sections.map((sec) => (
+                <li key={sec.id}>
+                  <a href={`#${sec.id}`} className="group flex items-center gap-2.5 px-5 py-2.5 text-slate-600 transition-colors hover:bg-slate-50 hover:text-teal-700 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-teal-300">
+                    <span className="font-mono font-bold text-teal-700 group-hover:scale-105 transition-transform dark:text-teal-400">{String(sec.n).padStart(2, '0')}</span>
+                    <span className="font-medium">{sec.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
           </Card>
         </div>
 
-        <Card className="lg:col-span-3">
-          <CardHeader title="Data Barang" desc="HS code dari master barang; tarif BM/PPN/PPh dari master HS"
-            action={<Button type="button" variant="secondary" size="sm" onClick={() => setF({ ...f, lines: [...f.lines, emptyLine()] })}><Plus className="size-3.5" />Tambah Barang</Button>} />
+        <Card id="sec-6" className="lg:col-span-3">
+          <CardHeader index={itemsIdx} title={t('form.secItems')} desc={t('form.itemsDesc')}
+            action={
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:inline">{f.lines.length} pos</span>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setF({ ...f, lines: [...f.lines, emptyLine()] })}><Plus className="size-3.5" />{t('form.addItem')}</Button>
+              </div>
+            } />
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead><tr className="border-b border-slate-200 bg-slate-50/70 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                <th className="w-10 px-4 py-2.5">No</th><th className="px-2 py-2.5">Barang</th><th className="w-36 px-2 py-2.5">HS Code</th>
-                <th className="w-32 px-2 py-2.5 text-right">Jumlah</th><th className="w-32 px-2 py-2.5 text-right">Harga Satuan</th><th className="w-36 px-2 py-2.5 text-right">Subtotal</th><th className="w-12" />
+            <table className="w-full min-w-[760px] text-sm">
+              <thead><tr className="border-b border-slate-200/90 bg-slate-50/80 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
+                <th className="w-12 px-4 py-3 text-center">{t('common.no')}</th><th className="px-3 py-3">{t('form.colItem')}</th><th className="w-40 px-3 py-3">{t('form.colHs')}</th>
+                <th className="w-36 px-3 py-3 text-right">{t('form.colQty')}</th><th className="w-36 px-3 py-3 text-right">{t('form.colPrice')}</th><th className="w-36 px-3 py-3 text-right">{t('form.colSubtotal')}</th><th className="w-12 px-3 py-3" />
               </tr></thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {f.lines.map((l, i) => {
                   const it = items.find((x) => String(x.id) === l.itemId);
                   return (
-                    <tr key={i}>
-                      <td className="px-4 py-2 text-slate-400">{i + 1}</td>
-                      <td className="px-2 py-2"><Select aria-label={`Barang ${i + 1}`} required value={l.itemId} placeholder="Pilih barang" options={items.map((x) => ({ value: x.id, label: `${x.code} · ${x.name}` }))}
+                    <tr key={i} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-4 py-2.5 text-center font-mono text-xs text-slate-400 dark:text-slate-500">{i + 1}</td>
+                      <td className="px-3 py-2.5"><Select aria-label={`Barang ${i + 1}`} required value={l.itemId} placeholder={t('form.selectItem')} options={items.map((x) => ({ value: x.id, label: `${x.code} · ${x.name}` }))}
                         onChange={(e) => setLine(i, { itemId: e.target.value, hsCode: items.find((x) => String(x.id) === e.target.value)?.hsCode ?? '' })} /></td>
-                      <td className="px-2 py-2"><Select aria-label={`HS ${i + 1}`} className="font-mono text-xs" value={l.hsCode} placeholder="-" onChange={(e) => setLine(i, { hsCode: e.target.value })} options={meta.refs('hs').map((r) => ({ value: r.code, label: r.code }))} /></td>
-                      <td className="px-2 py-2"><div className="flex items-center gap-1"><Input aria-label={`Jumlah ${i + 1}`} required type="number" step="any" min="0" className="text-right" value={l.qty} onChange={(e) => setLine(i, { qty: e.target.value })} /><span className="w-8 text-xs text-slate-400">{it?.uom}</span></div></td>
-                      <td className="px-2 py-2"><Input aria-label={`Harga ${i + 1}`} required type="number" step="any" min="0" className="text-right" value={l.unitPrice} onChange={(e) => setLine(i, { unitPrice: e.target.value })} /></td>
-                      <td className="px-2 py-2 text-right tabular-nums">{num(Number(l.qty) * Number(l.unitPrice) || 0, 2)}</td>
-                      <td className="px-2 py-2"><Button type="button" variant="ghost" disabled={f.lines.length === 1} onClick={() => setF({ ...f, lines: f.lines.filter((_, j) => j !== i) })} aria-label="Hapus barang"><Trash2 className="size-4 text-red-500" /></Button></td>
+                      <td className="px-3 py-2.5"><Select aria-label={`HS ${i + 1}`} className="font-mono text-xs" value={l.hsCode} placeholder="-" onChange={(e) => setLine(i, { hsCode: e.target.value })} options={meta.refs('hs').map((r) => ({ value: r.code, label: r.code }))} /></td>
+                      <td className="px-3 py-2.5"><div className="flex items-center gap-1.5"><Input aria-label={`Jumlah ${i + 1}`} required type="number" step="any" min="0" className="text-right" value={l.qty} onChange={(e) => setLine(i, { qty: e.target.value })} /><span className="w-9 text-xs font-medium text-slate-500 dark:text-slate-400">{it?.uom}</span></div></td>
+                      <td className="px-3 py-2.5"><Input aria-label={`Harga ${i + 1}`} required type="number" step="any" min="0" className="text-right" value={l.unitPrice} onChange={(e) => setLine(i, { unitPrice: e.target.value })} /></td>
+                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-slate-900 dark:text-slate-100">{num(Number(l.qty) * Number(l.unitPrice) || 0, 2)}</td>
+                      <td className="px-3 py-2.5 text-center"><Button type="button" variant="ghost" size="sm" disabled={f.lines.length === 1} onClick={() => setF({ ...f, lines: f.lines.filter((_, j) => j !== i) })} aria-label={t('common.delete')}><Trash2 className="size-4 text-red-500" /></Button></td>
                     </tr>
                   );
                 })}

@@ -1,15 +1,69 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   background: #f8fafc;
   color: #0f172a;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark body {
+  background: #030712;
+  color: #f1f5f9;
+}
+
+/* Refined custom scrollbar for tables and overflow containers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.45);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+
+@keyframes progressSlide {
+  0% { transform: translateX(-100%); width: 40%; }
+  50% { transform: translateX(60%); width: 55%; }
+  100% { transform: translateX(220%); width: 40%; }
+}
+
+.animate-progress {
+  animation: progressSlide 1.2s ease-in-out infinite;
 }
 
 @media print {
   @page { size: A4; margin: 12mm; }
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 }

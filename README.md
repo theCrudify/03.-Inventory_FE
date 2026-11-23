@@ -5,6 +5,8 @@ Perusahaan, mitra, dan transaksinya fiktif. Respon Bea Cukai (CEISA) disimulasik
 
 **Stack:** Next.js 16 (App Router) · React 19 · Tailwind CSS 4 · lucide-react
 
+**Live:** https://inventory-ui-rho-ten.vercel.app (API: https://inventory-api.jidanfatahillah2003.workers.dev)
+
 ## Fitur
 
 - Login dengan 3 role (admin, operator, viewer read-only) dan audit log
@@ -32,5 +34,5 @@ npm run dev        # http://localhost:3000
 ## Deploy gratis (Vercel)
 
 1. Push folder ini ke GitHub, lalu di [vercel.com](https://vercel.com) pilih **Add New → Project** dan import repo-nya.
-2. Isi environment variable `NEXT_PUBLIC_API_URL` = URL Workers API (`https://inventory-api.<akun>.workers.dev`).
+2. Isi environment variable `NEXT_PUBLIC_API_URL` = URL Workers API (`https://inventory-api.jidanfatahillah2003.workers.dev`).
 3. Deploy. Setelah itu masukkan URL Vercel ke `CORS_ORIGINS` di `wrangler.toml` API, lalu jalankan `npm run deploy` ulang di folder API.

@@ -1,59 +1,124 @@
 'use client';
-import { Plus, Search } from 'lucide-react';
+import { Plus, RotateCcw } from 'lucide-react';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Badge, Button, Card, ErrorBox, Input, PageHeader, Pagination, Select, Table } from '@/components/ui';
+import { Badge, Button, Card, ErrorBox, FilterBar, FilterDateRange, PageHeader, Pagination, SearchInput, Select, Table } from '@/components/ui';
 import { qs, type Paged } from '@/lib/api';
 import { canWrite, useAuth } from '@/lib/auth';
 import { aju, date, money } from '@/lib/format';
 import { useMeta } from '@/lib/meta';
+import { usePrefs } from '@/lib/prefs';
 import type { CustomsListRow } from '@/lib/types';
-import { useFetch } from '@/lib/use-fetch';
+import { useDebouncedValue, useFetch } from '@/lib/use-fetch';
 
 export default function DocListPage() {
   const { jenis } = useParams<{ jenis: string }>();
   const meta = useMeta();
+  const { t } = usePrefs();
   const cfg = meta.bcBySlug(jenis);
   if (!cfg) notFound();
   const { user } = useAuth();
   const router = useRouter();
-  const [f, setF] = useState({ q: '', status: '', from: '', to: '' });
-  const [applied, setApplied] = useState(f);
+  const [q, setQ] = useState('');
+  const debouncedQ = useDebouncedValue(q, 280);
+  const [status, setStatus] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
   const [page, setPage] = useState(1);
-  const { data, error, loading, reload } = useFetch<Paged<CustomsListRow>>(`/customs-docs${qs({ bc: cfg.code, page, pageSize: 15, ...applied })}`);
+  const [pageSize, setPageSize] = useState(15);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const { data, error, loading, reload } = useFetch<Paged<CustomsListRow>>(
+    `/customs-docs${qs({ bc: cfg.code, page, pageSize, q: debouncedQ, status, from, to, sortBy, sortDir })}`,
+  );
   const live = data?.data.some((d) => meta.status(d.status).inFlight);
   useEffect(() => {
     if (!live) return;
-    const t = setInterval(() => reload(true), 4000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => reload(true), 4000);
+    return () => clearInterval(timer);
   }, [live, reload]);
+
+  const onSort = (key: string) => {
+    setPage(1);
+    if (sortBy === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortBy(key); setSortDir('asc'); }
+  };
+
+  const hasFilters = !!(q || status || from || to || sortBy !== 'createdAt' || sortDir !== 'desc');
+  const reset = () => {
+    setQ(''); setStatus(''); setFrom(''); setTo('');
+    setPage(1); setSortBy('createdAt'); setSortDir('desc');
+  };
 
   return (
     <>
       <PageHeader title={cfg.label} desc={cfg.title}
-        actions={canWrite(user) && <Button href={`/dokumen/${jenis}/baru`}><Plus className="size-4" />Buat {cfg.label}</Button>} />
+        actions={canWrite(user) && <Button href={`/dokumen/${jenis}/baru`}><Plus className="size-4" />{t('doc.create')} {cfg.label}</Button>} />
       <Card>
-        <form onSubmit={(e) => { e.preventDefault(); setPage(1); setApplied(f); }} className="flex flex-wrap items-end gap-2 border-b border-slate-100 p-3">
-          <div className="relative min-w-56 flex-1">
-            <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-slate-400" />
-            <Input aria-label="Cari" className="pl-9" placeholder="No. aju, no. daftar, atau mitra" value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} />
-          </div>
-          <Select aria-label="Status" className="w-auto" value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })} placeholder="Semua status" options={meta.options('status_dokumen', false)} />
-          <Input aria-label="Dari tanggal" type="date" className="w-auto" value={f.from} onChange={(e) => setF({ ...f, from: e.target.value })} />
-          <Input aria-label="Sampai tanggal" type="date" className="w-auto" value={f.to} onChange={(e) => setF({ ...f, to: e.target.value })} />
-          <Button type="submit" variant="secondary">Terapkan</Button>
-        </form>
+        <FilterBar
+          search={
+            <SearchInput
+              placeholder={t('doc.searchPlaceholder')}
+              value={q}
+              searching={loading && q !== debouncedQ}
+              onChange={(v) => { setQ(v); setPage(1); }}
+            />
+          }
+          filters={
+            <>
+              <div className="w-full sm:w-44">
+                <Select
+                  aria-label={t('doc.status')}
+                  value={status}
+                  onChange={(e) => { setStatus(e.target.value); setPage(1); }}
+                  placeholder={t('doc.allStatuses')}
+                  options={meta.statusOptions()}
+                />
+              </div>
+              <FilterDateRange
+                from={from}
+                to={to}
+                onFromChange={(val) => { setFrom(val); setPage(1); }}
+                onToChange={(val) => { setTo(val); setPage(1); }}
+                fromLabel={t('report.from')}
+                toLabel={t('report.to')}
+              />
+            </>
+          }
+          hasActiveFilters={hasFilters}
+          activeFilterCount={(status ? 1 : 0) + (from || to ? 1 : 0)}
+          onReset={reset}
+        />
         {error ? <div className="p-4"><ErrorBox text={error} /></div> : (
-          <Table<CustomsListRow> loading={loading} rows={data?.data ?? []} onRowClick={(r) => router.push(`/dokumen/${jenis}/${r.id}`)} columns={[
-            { key: 'ajuNumber', label: 'Nomor Aju', render: (r) => <span className="whitespace-nowrap font-mono text-xs text-slate-800">{aju(r.ajuNumber)}</span> },
-            { key: 'registrationNumber', label: 'No. Daftar', render: (r) => r.registrationNumber ? <span className="font-mono text-xs">{r.registrationNumber}<span className="block text-slate-400">{date(r.registrationDate)}</span></span> : <span className="text-slate-400">-</span> },
-            { key: 'partnerName', label: meta.direction(cfg.direction).partyLabel, className: 'max-w-60 truncate' },
-            { key: 'totalValue', label: 'Nilai', align: 'right', render: (r) => money(r.totalValue, r.currency) },
-            { key: 'status', label: 'Status', render: (r) => { const st = meta.status(r.status); return <Badge tone={st.tone} pulse={st.inFlight}>{st.label}</Badge>; } },
-            { key: 'createdAt', label: 'Dibuat', render: (r) => <span className="whitespace-nowrap">{date(r.createdAt)}</span> },
-          ]} />
+          <Table<CustomsListRow>
+            loading={loading}
+            rows={data?.data ?? []}
+            emptyText={debouncedQ || status || from || to ? t('common.noSearchData') : t('common.noData')}
+            sortBy={sortBy}
+            sortDir={sortDir}
+            onSort={onSort}
+            rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
+            onRowClick={(r) => router.push(`/dokumen/${jenis}/${r.id}`)}
+            columns={[
+              { key: 'ajuNumber', sortable: true, label: t('doc.ajuNumber'), render: (r) => <span className="whitespace-nowrap font-mono text-xs text-slate-800 dark:text-slate-200">{aju(r.ajuNumber)}</span> },
+              { key: 'registrationNumber', sortable: true, label: t('doc.regNumber'), render: (r) => r.registrationNumber ? <span className="font-mono text-xs">{r.registrationNumber}<span className="block text-slate-400 dark:text-slate-500">{date(r.registrationDate)}</span></span> : <span className="text-slate-400">-</span> },
+              { key: 'partnerName', sortable: true, label: meta.direction(cfg.direction).partyLabel, className: 'max-w-60 truncate' },
+              { key: 'totalValue', sortable: true, label: t('doc.value'), align: 'right', render: (r) => money(r.totalValue, r.currency) },
+              { key: 'status', sortable: true, label: t('doc.status'), render: (r) => { const st = meta.status(r.status); return <Badge tone={st.tone} pulse={st.inFlight}>{st.label}</Badge>; } },
+              { key: 'createdAt', sortable: true, label: t('doc.createdAt'), render: (r) => <span className="whitespace-nowrap">{date(r.createdAt)}</span> },
+            ]}
+          />
         )}
-        {data && <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPage={setPage} />}
+        {data && (
+          <Pagination
+            page={data.page}
+            pageSize={data.pageSize}
+            total={data.total}
+            onPage={setPage}
+            onPageSize={(s) => { setPageSize(s); setPage(1); }}
+          />
+        )}
       </Card>
     </>
   );

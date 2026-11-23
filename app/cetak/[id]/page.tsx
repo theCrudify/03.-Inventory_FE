@@ -1,9 +1,10 @@
 'use client';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button, ErrorBox, Spinner } from '@/components/ui';
+import { Button, ErrorBox, FormSkeleton } from '@/components/ui';
 import { aju, date, dateTime, idr, num, qty } from '@/lib/format';
 import { useMeta } from '@/lib/meta';
+import { usePrefs } from '@/lib/prefs';
 import type { CustomsDoc } from '@/lib/types';
 import { useFetch } from '@/lib/use-fetch';
 
@@ -16,19 +17,20 @@ export default function PrintPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const meta = useMeta();
+  const { t } = usePrefs();
   const { company, app } = meta;
   const L = meta.label;
   const { data: d, error } = useFetch<CustomsDoc>(`/customs-docs/${id}`);
   if (error) return <div className="p-6"><ErrorBox text={error} /></div>;
-  if (!d) return <Spinner />;
+  if (!d) return <div className="mx-auto max-w-[210mm] p-6"><FormSkeleton /></div>;
   const h = d.header;
   const approval = d.events.find((e) => meta.status(e.status).approved);
 
   return (
-    <div className="min-h-dvh bg-slate-100 py-6 print:bg-white print:py-0">
+    <div className="min-h-dvh bg-slate-100 py-6 dark:bg-slate-950 print:bg-white print:py-0">
       <div className="mx-auto mb-4 flex max-w-[210mm] justify-between px-4 print:hidden">
-        <Button variant="secondary" onClick={() => router.back()}><ArrowLeft className="size-4" />Kembali</Button>
-        <Button onClick={() => window.print()}><Printer className="size-4" />Cetak / Simpan PDF</Button>
+        <Button variant="secondary" onClick={() => router.back()}><ArrowLeft className="size-4" />{t('common.back')}</Button>
+        <Button onClick={() => window.print()}><Printer className="size-4" />{t('common.printPdf')}</Button>
       </div>
       <article className="relative mx-auto max-w-[210mm] bg-white p-[12mm] text-[11px] leading-snug text-black shadow print:max-w-none print:p-0 print:shadow-none">
         {!meta.status(d.status).approved && (
