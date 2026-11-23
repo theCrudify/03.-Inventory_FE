@@ -82,5 +82,5 @@ export function downloadXlsx(filename: string, sheetName: string, rows: XlsxCell
   a.href = url;
   a.download = filename;
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

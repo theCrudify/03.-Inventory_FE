@@ -2,7 +2,7 @@
 import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { notFound, useParams } from 'next/navigation';
 import { useState } from 'react';
-import { Button, Card, ErrorBox, Field, FilterBar, Input, Modal, PageHeader, Pagination, SearchInput, Select, Table, toast } from '@/components/ui';
+import { Button, Card, DateField, ErrorBox, Field, FilterBar, Input, Modal, PageHeader, Pagination, SearchInput, Select, Table, toast } from '@/components/ui';
 import { api, ApiError, qs, type Paged } from '@/lib/api';
 import { canWrite, useAuth } from '@/lib/auth';
 import { date, money, num, today } from '@/lib/format';
@@ -132,57 +132,116 @@ export default function TradePage() {
       </Card>
 
       <Modal wide open={!!edit} onClose={() => setEdit(null)} title={`${edit === 'new' ? t('common.add') : t('common.edit')} ${cfg.title}`}
-        footer={<><span className="mr-auto self-center text-sm font-semibold">{t('common.total')} {money(total, f.currency)}</span><Button variant="secondary" onClick={() => setEdit(null)}>{t('common.cancel')}</Button><Button type="submit" form="trade-form" loading={busy}>{t('common.save')}</Button></>}>
-        <form id="trade-form" onSubmit={save} className="space-y-4">
+        footer={<><Button variant="secondary" onClick={() => setEdit(null)}>{t('common.cancel')}</Button><Button type="submit" form="trade-form" loading={busy}>{t('common.save')}</Button></>}>
+        <form id="trade-form" onSubmit={save} className="space-y-5">
           {err && <ErrorBox text={err} />}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <span className="rounded bg-teal-50 px-1.5 py-0.5 font-mono text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">01</span>
-              <span>{t('trade.secInfo')}</span>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Field index="1.1" label={t('trade.number')} required><Input required value={f.number} onChange={(e) => setF({ ...f, number: e.target.value })} /></Field>
-              <Field index="1.2" label={t('trade.date')} required><Input required type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></Field>
-              <Field index="1.3" label={cfg.partnerLabel} required><Select required value={f.partnerId} onChange={(e) => setF({ ...f, partnerId: e.target.value })} placeholder={t('form.selectPartner')} options={partners.map((p) => ({ value: p.id, label: p.name }))} /></Field>
-              <Field index="1.4" label={t('form.currency')}><Select value={f.currency} onChange={(e) => setF({ ...f, currency: e.target.value })} options={meta.refs('valuta').map((r) => ({ value: r.code, label: r.code }))} /></Field>
-              <Field index="1.5" label={t('form.incoterm')}><Select value={f.incoterm} onChange={(e) => setF({ ...f, incoterm: e.target.value })} placeholder="-" options={meta.options('incoterm')} /></Field>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('trade.secInfo')}</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <Field label={t('trade.number')} required>
+                <Input required placeholder="INV-2026-..." value={f.number} onChange={(e) => setF({ ...f, number: e.target.value })} />
+              </Field>
+              <Field label={t('trade.date')} required>
+                <DateField value={f.date} onChange={(v) => setF({ ...f, date: v })} />
+              </Field>
+              <Field label={cfg.partnerLabel} required>
+                <Select required value={f.partnerId} onChange={(e) => setF({ ...f, partnerId: e.target.value })} placeholder={t('form.selectPartner')} options={partners.map((p) => ({ value: p.id, label: p.name }))} />
+              </Field>
+              <Field label={t('form.currency')}>
+                <Select value={f.currency} onChange={(e) => setF({ ...f, currency: e.target.value })} options={meta.refs('valuta').map((r) => ({ value: r.code, label: r.code }))} />
+              </Field>
+              <Field label={t('form.incoterm')} className="sm:col-span-1 lg:col-span-2">
+                <Select value={f.incoterm} onChange={(e) => setF({ ...f, incoterm: e.target.value })} placeholder="—" options={meta.options('incoterm')} />
+              </Field>
             </div>
           </div>
-          <div className="space-y-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-2">
-                <span className="rounded bg-teal-50 px-1.5 py-0.5 font-mono text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">02</span>
-                <span>{t('trade.secLines')}</span>
-              </span>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setF({ ...f, lines: [...f.lines, { itemId: '', qty: '', unitPrice: '' }] })}><Plus className="size-3.5" />{t('common.add')}</Button>
+
+          <div className="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('trade.secLines')}</h3>
+              <Button type="button" variant="secondary" size="xs" onClick={() => setF({ ...f, lines: [...f.lines, { itemId: '', qty: '', unitPrice: '' }] })}>
+                <Plus className="size-3.5" />{t('common.add')}
+              </Button>
             </div>
-            <div className="space-y-2">
-              {f.lines.map((l, i) => (
-                <div key={i} className="rounded-lg border border-slate-200/80 bg-slate-50/50 p-2.5 sm:border-0 sm:bg-transparent sm:p-0 sm:grid sm:grid-cols-[2rem_1fr_7.5rem_7.5rem_6.5rem_auto] sm:items-center sm:gap-2">
-                  <span className="hidden sm:block text-center font-mono text-xs font-semibold text-slate-400 dark:text-slate-500">#{i + 1}</span>
-                  <div className="space-y-1 sm:space-y-0">
-                    <span className="text-[11px] font-medium text-slate-500 sm:hidden">Barang #{i + 1}</span>
-                    <Select aria-label={`Barang ${i + 1}`} required value={l.itemId} onChange={(e) => setLine(i, { itemId: e.target.value })} placeholder={t('form.selectItem')} options={items.map((x) => ({ value: x.id, label: `${x.code} · ${x.name}` }))} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 sm:contents mt-2 sm:mt-0">
-                    <div className="space-y-1 sm:space-y-0">
-                      <span className="text-[11px] font-medium text-slate-500 sm:hidden">{t('form.colQty')}</span>
-                      <Input aria-label={`Jumlah ${i + 1}`} required type="number" step="any" min="0" placeholder={t('form.colQty')} className="text-right" value={l.qty} onChange={(e) => setLine(i, { qty: e.target.value })} />
-                    </div>
-                    <div className="space-y-1 sm:space-y-0">
-                      <span className="text-[11px] font-medium text-slate-500 sm:hidden">{t('form.colPrice')}</span>
-                      <Input aria-label={`Harga ${i + 1}`} required type="number" step="any" min="0" placeholder={t('form.colPrice')} className="text-right" value={l.unitPrice} onChange={(e) => setLine(i, { unitPrice: e.target.value })} />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between sm:justify-end mt-2 sm:mt-0">
-                    <span className="text-xs sm:hidden font-medium text-slate-500">Subtotal:</span>
-                    <span className="text-right text-xs font-semibold tabular-nums text-slate-800 dark:text-slate-200">{num(Number(l.qty) * Number(l.unitPrice) || 0, 2)}</span>
-                  </div>
-                  <div className="flex justify-end pt-1 sm:pt-0">
-                    <Button type="button" variant="ghost" size="sm" disabled={f.lines.length === 1} onClick={() => setF({ ...f, lines: f.lines.filter((_, j) => j !== i) })} aria-label={t('common.delete')}><Trash2 className="size-4 text-red-500" /></Button>
-                  </div>
-                </div>
-              ))}
+
+            <div className="overflow-hidden rounded-lg border border-slate-200/90 dark:border-slate-800">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+                    <th className="w-9 py-2 pl-3 text-center">#</th>
+                    <th className="py-2 px-2">{t('nav.items')}</th>
+                    <th className="w-28 py-2 px-2 text-right">{t('form.colQty')}</th>
+                    <th className="w-32 py-2 px-2 text-right">{t('form.colPrice')}</th>
+                    <th className="w-32 py-2 px-2 text-right">{t('common.total')}</th>
+                    <th className="w-9 py-2 pr-2"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  {f.lines.map((l, i) => {
+                    const sub = Number(l.qty) * Number(l.unitPrice) || 0;
+                    return (
+                      <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                        <td className="py-2 pl-3 text-center font-mono text-[11px] text-slate-400">{i + 1}</td>
+                        <td className="py-2 px-2">
+                          <Select
+                            required
+                            value={l.itemId}
+                            onChange={(e) => setLine(i, { itemId: e.target.value })}
+                            placeholder={t('form.selectItem')}
+                            options={items.map((x) => ({ value: x.id, label: `${x.code} · ${x.name}` }))}
+                            className="h-8 text-xs"
+                          />
+                        </td>
+                        <td className="py-2 px-2">
+                          <Input
+                            required
+                            type="number"
+                            step="any"
+                            min="0"
+                            placeholder="0"
+                            className="h-8 text-right text-xs tabular-nums"
+                            value={l.qty}
+                            onChange={(e) => setLine(i, { qty: e.target.value })}
+                          />
+                        </td>
+                        <td className="py-2 px-2">
+                          <Input
+                            required
+                            type="number"
+                            step="any"
+                            min="0"
+                            placeholder="0.00"
+                            className="h-8 text-right text-xs tabular-nums"
+                            value={l.unitPrice}
+                            onChange={(e) => setLine(i, { unitPrice: e.target.value })}
+                          />
+                        </td>
+                        <td className="py-2 px-2 text-right font-medium tabular-nums text-slate-800 dark:text-slate-200">
+                          {num(sub, 2)}
+                        </td>
+                        <td className="py-2 pr-2 text-right">
+                          <button
+                            type="button"
+                            disabled={f.lines.length === 1}
+                            onClick={() => setF({ ...f, lines: f.lines.filter((_, j) => j !== i) })}
+                            className="grid size-7 place-items-center rounded-md text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-30 dark:hover:bg-red-950/40 cursor-pointer"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-slate-200/70 bg-slate-50/70 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900/60">
+              <span className="text-xs text-slate-500 dark:text-slate-400">{f.lines.length} {t('common.items')}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('common.total')}:</span>
+                <span className="text-base font-semibold tabular-nums text-slate-900 dark:text-slate-100">{money(total, f.currency)}</span>
+              </div>
             </div>
           </div>
         </form>
