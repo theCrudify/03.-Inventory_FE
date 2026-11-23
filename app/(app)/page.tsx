@@ -1,5 +1,5 @@
 'use client';
-import { Boxes, CheckCircle2, FileClock, FilePen, FileX2, Plus, Users } from 'lucide-react';
+import { ArrowUpRight, Boxes, CheckCircle2, FileClock, FilePen, FileX2, Plus, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { Badge, Button, Card, CardHeader, DashboardSkeleton, ErrorBox, PageHeader, Stat } from '@/components/ui';
@@ -17,7 +17,13 @@ type Dashboard = {
   recentEvents: { id: number; docId: number; status: string; code: string; message: string; createdAt: string; ajuNumber: string; bcType: string }[];
 };
 
-const BAR: Record<Tone, string> = { teal: 'bg-teal-600 dark:bg-teal-500', amber: 'bg-amber-500', blue: 'bg-blue-500', violet: 'bg-violet-500', green: 'bg-emerald-600 dark:bg-emerald-500', red: 'bg-red-500', gray: 'bg-slate-400' };
+const BAR: Record<Tone, string> = { teal: 'bg-teal-500', amber: 'bg-amber-400', blue: 'bg-blue-500', violet: 'bg-violet-500', green: 'bg-emerald-500', red: 'bg-red-500', gray: 'bg-slate-400' };
+
+/** Round an axis maximum up to 1/2/2.5/5 × 10ⁿ so gridlines land on readable values. */
+const niceMax = (v: number) => {
+  const p = 10 ** Math.floor(Math.log10(v));
+  return ([1, 2, 2.5, 5, 10].find((m) => m * p >= v) ?? 10) * p;
+};
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -27,7 +33,9 @@ export default function DashboardPage() {
   const statuses = meta.statuses();
   const sumWhere = (pred: (s: ReturnType<typeof meta.status>) => boolean) => statuses.filter(pred).reduce((a, s) => a + (data?.byStatus[s.code] ?? 0), 0);
   const inFlight = sumWhere((s) => s.inFlight);
-  const monthFmt = (m: string) => new Date(`${m}-01`).toLocaleDateString(lang === 'en' ? 'en-US' : 'id-ID', { month: 'short', year: '2-digit' });
+  const locale = lang === 'en' ? 'en-US' : 'id-ID';
+  const monthFmt = (m: string) => new Date(`${m}-01`).toLocaleDateString(locale, { month: 'short' });
+  const compact = (v: number) => (v ? 'Rp ' + new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(v) : '0');
 
   useEffect(() => {
     if (!inFlight) return;
@@ -39,8 +47,10 @@ export default function DashboardPage() {
   if (!data) return <DashboardSkeleton />;
   const { totals, trend, perJenis, recentEvents } = data;
   const directions = meta.refs('arah_dokumen').map((d) => meta.direction(d.code));
-  const max = Math.max(1, ...trend.flatMap((tr) => Object.values(tr.values)));
+  const max = niceMax(Math.max(1, ...trend.flatMap((tr) => Object.values(tr.values))));
+  const ticks = [1, 0.75, 0.5, 0.25, 0];
   const labelOf = (pred: (s: ReturnType<typeof meta.status>) => boolean) => statuses.find(pred)?.label ?? '';
+  const maxDocs = Math.max(1, ...perJenis.map((x) => x.total));
 
   return (
     <>
@@ -48,77 +58,96 @@ export default function DashboardPage() {
         title={`${t('dash.welcome')}, ${user?.name.split(' ')[0]}`}
         desc={t('dash.desc')}
         actions={canWrite(user) && meta.bcTypes.filter((b) => b.international).map((b, i) => (
-          <Button key={b.code} variant={i ? 'primary' : 'secondary'} href={`/dokumen/${b.slug}/baru`}><Plus className="size-4" />{b.label}</Button>
+          <Button key={b.code} variant={i ? 'primary' : 'secondary'} href={`/dokumen/${b.slug}/baru`}><Plus />{b.label}</Button>
         ))}
       />
-      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
-        <Stat label={labelOf((s) => s.approved)} value={num(sumWhere((s) => s.approved))} icon={<CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />} sub={t('dash.fromDocs', { n: num(totals.dokumen) })} />
-        <Stat label={t('dash.inCeisa')} value={num(inFlight)} icon={<FileClock className="size-4 text-amber-600 dark:text-amber-400" />} sub={inFlight ? <Badge tone="amber" pulse>{t('dash.waitingResponse')}</Badge> : t('dash.noQueue')} />
-        <Stat label={labelOf((s) => s.initial)} value={num(sumWhere((s) => s.initial))} icon={<FilePen className="size-4 text-slate-500 dark:text-slate-400" />} sub={t('dash.notSent')} />
-        <Stat label={labelOf((s) => s.rejected)} value={num(sumWhere((s) => s.rejected))} icon={<FileX2 className="size-4 text-red-600 dark:text-red-400" />} sub={t('dash.needsFix')} />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat tone="green" label={labelOf((s) => s.approved)} value={num(sumWhere((s) => s.approved))} icon={<CheckCircle2 />} sub={t('dash.fromDocs', { n: num(totals.dokumen) })} />
+        <Stat tone="amber" label={t('dash.inCeisa')} value={num(inFlight)} icon={<FileClock />} sub={inFlight ? <Badge tone="amber" pulse>{t('dash.waitingResponse')}</Badge> : t('dash.noQueue')} />
+        <Stat tone="gray" label={labelOf((s) => s.initial)} value={num(sumWhere((s) => s.initial))} icon={<FilePen />} sub={t('dash.notSent')} />
+        <Stat tone="red" label={labelOf((s) => s.rejected)} value={num(sumWhere((s) => s.rejected))} icon={<FileX2 />} sub={t('dash.needsFix')} />
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 overflow-hidden">
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader
             title={t('dash.trendTitle')}
             desc={t('dash.trendDesc', { n: trend.length })}
             action={
-              <div className="flex flex-wrap gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap gap-3 text-xs text-slate-500 dark:text-slate-400">
                 {directions.map((d) => (
-                  <span key={d.code} className="inline-flex items-center gap-1.5 font-medium">
-                    <span className={`size-2.5 rounded-sm ${BAR[d.tone]}`} />
-                    {d.label}
+                  <span key={d.code} className="inline-flex items-center gap-1.5">
+                    <span className={`size-2 rounded-full ${BAR[d.tone]}`} />{d.label}
                   </span>
                 ))}
               </div>
             }
           />
-          <div className="flex h-60 items-end gap-3 px-5 pb-5 pt-8">
-            {trend.map((tr) => (
-              <div key={tr.month} className="flex h-full flex-1 flex-col items-center gap-2.5">
-                <div className="flex w-full flex-1 items-end justify-center gap-1 border-b border-slate-100 dark:border-slate-800 pb-1">
-                  {directions.map((d) => {
-                    const val = tr.values[d.code] ?? 0;
-                    const heightPct = Math.max(3, (val / max) * 100);
-                    return (
-                      <div
-                        key={d.code}
-                        title={`${d.label}: ${idr(val)}`}
-                        style={{ height: `${heightPct}%` }}
-                        className={`w-full max-w-7 rounded-t-sm transition-all duration-300 hover:opacity-85 ${BAR[d.tone]}`}
-                      />
-                    );
-                  })}
+          <div className="flex gap-3 px-5 pb-4 pt-5">
+            {/* Y axis */}
+            <div className="relative h-56 w-14 shrink-0 text-right text-[11px] tabular-nums text-slate-400">
+              {ticks.map((f) => (
+                <span key={f} className="absolute right-0 -translate-y-1/2" style={{ top: `${(1 - f) * 100}%` }}>{compact(max * f)}</span>
+              ))}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="relative h-56">
+                {ticks.map((f) => (
+                  <div key={f} className={`absolute inset-x-0 border-t ${f === 0 ? 'border-slate-200 dark:border-slate-700' : 'border-dashed border-slate-100 dark:border-slate-800'}`} style={{ top: `${(1 - f) * 100}%` }} />
+                ))}
+                <div className="absolute inset-0 flex items-end">
+                  {trend.map((tr) => (
+                    <div key={tr.month} className="group relative flex h-full flex-1 items-end justify-center gap-1 rounded-md px-1 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      {directions.map((d) => {
+                        const val = tr.values[d.code] ?? 0;
+                        return (
+                          <div
+                            key={d.code}
+                            style={{ height: `${Math.max(val ? 1.5 : 0, (val / max) * 100)}%` }}
+                            className={`w-full max-w-6 rounded-t-[4px] transition-[height] duration-500 ${BAR[d.tone]}`}
+                          />
+                        );
+                      })}
+                      {/* Tooltip */}
+                      <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden w-max -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-[11px] text-white shadow-pop group-hover:block dark:bg-slate-700">
+                        <p className="mb-1 font-medium">{new Date(`${tr.month}-01`).toLocaleDateString(locale, { month: 'long', year: 'numeric' })}</p>
+                        {directions.map((d) => (
+                          <p key={d.code} className="flex items-center gap-1.5 tabular-nums text-slate-300">
+                            <span className={`size-1.5 rounded-full ${BAR[d.tone]}`} />{d.label}: <span className="font-medium text-white">{idr(tr.values[d.code] ?? 0)}</span>
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{monthFmt(tr.month)}</span>
               </div>
-            ))}
+              <div className="mt-2 flex">
+                {trend.map((tr) => <span key={tr.month} className="flex-1 text-center text-[11px] text-slate-500">{monthFmt(tr.month)}</span>)}
+              </div>
+            </div>
           </div>
         </Card>
 
-        <Card className="overflow-hidden">
-          <CardHeader title={t('dash.perType')} />
-          <ul className="divide-y divide-slate-100 text-sm dark:divide-slate-800/80">
+        <Card>
+          <CardHeader title={t('dash.perType')} desc={t('dash.fromDocs', { n: num(totals.dokumen) })} />
+          <ul className="p-2">
             {perJenis.map((p) => {
               const bc = meta.bc(p.bcType);
-              const maxDocs = Math.max(1, ...perJenis.map((x) => x.total));
-              const pct = Math.round((p.total / maxDocs) * 100);
+              const dir = bc && meta.direction(bc.direction);
               return (
-                <li key={p.bcType} className="relative overflow-hidden">
-                  <div
-                    className="absolute inset-y-0 left-0 bg-teal-50/50 dark:bg-teal-950/20 transition-all pointer-events-none"
-                    style={{ width: `${pct}%` }}
-                  />
-                  <Link
-                    href={`/dokumen/${bc?.slug}`}
-                    className="relative flex items-center justify-between px-5 py-2.5 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{bc?.label}</span>
-                      <span className="text-xs text-slate-400 dark:text-slate-500">{bc && meta.direction(bc.direction).shortLabel}</span>
-                    </span>
-                    <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">{p.total}</span>
+                <li key={p.bcType}>
+                  <Link href={`/dokumen/${bc?.slug}`} className="group block rounded-lg px-3 py-2 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <div className="flex items-center justify-between text-[13px]">
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium text-slate-800 dark:text-slate-200">{bc?.label}</span>
+                        <span className="text-xs text-slate-400">{dir?.shortLabel}</span>
+                      </span>
+                      <span className="font-medium tabular-nums text-slate-900 dark:text-slate-100">{p.total}</span>
+                    </div>
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                      <div className={`h-full rounded-full ${dir ? BAR[dir.tone] : 'bg-slate-400'}`} style={{ width: `${(p.total / maxDocs) * 100}%` }} />
+                    </div>
                   </Link>
                 </li>
               );
@@ -127,32 +156,34 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 overflow-hidden">
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader title={t('dash.recentCeisa')} desc={t('dash.recentCeisaDesc')} />
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800/80">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800/70">
             {recentEvents.length === 0 ? (
-              <li className="px-5 py-10 text-center text-xs text-slate-400 dark:text-slate-500">{t('dash.noQueue')}</li>
+              <li className="px-5 py-12 text-center text-[13px] text-slate-400">{t('dash.noQueue')}</li>
             ) : recentEvents.map((e) => (
               <li key={e.id}>
-                <Link
-                  href={`/dokumen/${meta.bc(e.bcType)?.slug}/${e.docId}`}
-                  className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
-                >
-                  <Badge tone={meta.status(e.status).tone}>{e.code}</Badge>
+                <Link href={`/dokumen/${meta.bc(e.bcType)?.slug}/${e.docId}`} className="group flex items-center gap-4 px-5 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                  <span className="w-14 shrink-0"><Badge tone={meta.status(e.status).tone} dot>{e.code}</Badge></span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-slate-800 dark:text-slate-200">{e.message}</span>
-                    <span className="mt-0.5 block font-mono text-xs text-slate-500 dark:text-slate-400">{meta.bc(e.bcType)?.label} · {aju(e.ajuNumber)}</span>
+                    <span className="block truncate text-[13px] font-medium text-slate-800 dark:text-slate-200">{e.message}</span>
+                    <span className="mt-0.5 block truncate text-xs text-slate-500">
+                      <span className="font-medium text-slate-600 dark:text-slate-400">{meta.bc(e.bcType)?.label}</span>
+                      <span className="mx-1.5 text-slate-300 dark:text-slate-600">/</span>
+                      <span className="font-mono tabular-nums">{aju(e.ajuNumber)}</span>
+                    </span>
                   </span>
-                  <span className="whitespace-nowrap text-xs text-slate-400 dark:text-slate-500">{dateTime(e.createdAt)}</span>
+                  <span className="hidden whitespace-nowrap text-xs tabular-nums text-slate-400 sm:block">{dateTime(e.createdAt)}</span>
+                  <ArrowUpRight className="size-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-600 dark:text-slate-600" />
                 </Link>
               </li>
             ))}
           </ul>
         </Card>
-        <div className="grid content-start gap-3.5">
-          <Stat label={t('dash.registeredItems')} value={num(totals.barang)} icon={<Boxes className="size-4 text-slate-500 dark:text-slate-400" />} sub={<Link className="font-semibold text-teal-700 hover:underline dark:text-teal-400" href="/master/barang">{t('dash.viewStock')}</Link>} />
-          <Stat label={t('dash.partners')} value={num(totals.mitra)} icon={<Users className="size-4 text-slate-500 dark:text-slate-400" />} sub={meta.refs('jenis_mitra').map((r) => r.name.toLowerCase()).join(', ')} />
+        <div className="grid content-start gap-4">
+          <Stat tone="teal" href="/master/barang" label={t('dash.registeredItems')} value={num(totals.barang)} icon={<Boxes />} sub={<span className="font-medium text-teal-700 dark:text-teal-400">{t('dash.viewStock')}</span>} />
+          <Stat tone="blue" href="/master/mitra" label={t('dash.partners')} value={num(totals.mitra)} icon={<Users />} sub={meta.refs('jenis_mitra').map((r) => r.name.toLowerCase()).join(', ')} />
         </div>
       </div>
     </>

@@ -106,7 +106,7 @@ export default function TradePage() {
             onSort={onSort}
             rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
             columns={[
-              { key: 'number', sortable: true, label: t('trade.number'), className: 'w-44 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.number}</span> },
+              { key: 'number', sortable: true, label: t('trade.number'), className: 'w-44 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-medium text-slate-800 dark:text-slate-200">{r.number}</span> },
               { key: 'date', sortable: true, label: t('trade.date'), className: 'w-32 whitespace-nowrap', render: (r) => date(r.date) },
               { key: 'partnerName', sortable: true, label: cfg.partnerLabel, className: 'min-w-[200px]' },
               { key: 'incoterm', sortable: true, label: 'Incoterm', className: 'w-24 text-center' },

@@ -15,7 +15,7 @@ export default function RolePage() {
       title={t('users.role')} desc={t('roles.desc')}
       path="/roles" onChanged={meta.reload}
       columns={[
-        { key: 'code', sortable: true, label: t('refs.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+        { key: 'code', sortable: true, label: t('refs.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-medium text-slate-800 dark:text-slate-200">{r.code}</span> },
         { key: 'name', sortable: true, label: t('users.name'), className: 'w-44', render: (r) => <Badge tone={r.tone}>{r.name}</Badge> },
         { key: 'canWrite', sortable: true, label: t('roles.canWrite'), className: 'w-44', render: (r) => (r.canWrite ? t('common.yes') : t('common.noBoolean')) },
         { key: 'isAdmin', sortable: true, label: t('users.role'), className: 'w-28', render: (r) => (r.isAdmin ? t('common.yes') : t('common.noBoolean')) },

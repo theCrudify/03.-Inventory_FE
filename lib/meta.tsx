@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useMemo } from 'react';
 import { ErrorBox, PageShellSkeleton } from '@/components/ui';
+import { translateData } from './data-i18n';
 import { usePrefs } from './prefs';
 import { useFetch } from './use-fetch';
 
@@ -76,8 +77,8 @@ const Ctx = createContext<Meta | null>(null);
 
 export function MetaProvider({ children }: { children: React.ReactNode }) {
   const { data, error, reload } = useFetch<MetaPayload>('/meta');
-  const { t } = usePrefs();
-  const meta = useMemo<Meta | null>(() => (data ? { ...build(data), reload: () => reload(true) } : null), [data, reload]);
+  const { t, lang } = usePrefs();
+  const meta = useMemo<Meta | null>(() => (data ? { ...build(translateData(data, lang)), reload: () => reload(true) } : null), [data, reload, lang]);
   useEffect(() => { if (meta) document.title = meta.app.name; }, [meta]);
   if (error) return <div className="p-6"><ErrorBox text={error} /></div>;
   if (!meta) return <PageShellSkeleton label={t('common.loadingMaster')} />;

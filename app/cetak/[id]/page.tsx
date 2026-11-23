@@ -17,7 +17,7 @@ export default function PrintPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const meta = useMeta();
-  const { t } = usePrefs();
+  const { t, td } = usePrefs();
   const { company, app } = meta;
   const L = meta.label;
   const { data: d, error } = useFetch<CustomsDoc>(`/customs-docs/${id}`);
@@ -38,7 +38,7 @@ export default function PrintPage() {
         )}
         <header className="relative border-b-2 border-black pb-2 text-center">
           <p className="text-[10px]">{app.printHeader}</p>
-          <h1 className="mt-1 text-sm font-bold uppercase">{d.type.title}</h1>
+          <h1 className="mt-1 text-sm font-bold uppercase">{td(d.type.title)}</h1>
           <p className="font-semibold">{d.type.label.toUpperCase()}</p>
         </header>
         <table className="relative mt-3 w-full border-collapse">
@@ -87,7 +87,7 @@ export default function PrintPage() {
 
         <footer className="relative mt-8 grid grid-cols-2 gap-8">
           <div className="text-[10px] text-slate-600">
-            {approval ? <>Respon: <b>{approval.code}</b> · {approval.message}<br />{dateTime(approval.createdAt)}</> : 'Belum ada persetujuan dari Bea dan Cukai.'}
+            {approval ? <>Respon: <b>{approval.code}</b> · {td(approval.message)}<br />{dateTime(approval.createdAt)}</> : 'Belum ada persetujuan dari Bea dan Cukai.'}
             {app.printFootnote && <p className="mt-2 italic">{app.printFootnote}</p>}
           </div>
           <div className="text-center">

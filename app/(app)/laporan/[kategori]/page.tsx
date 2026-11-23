@@ -115,7 +115,7 @@ export default function MutasiPage() {
             onSort={onSort}
             rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
             columns={[
-              { key: 'code', sortable: true, label: t('report.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+              { key: 'code', sortable: true, label: t('report.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-medium text-slate-800 dark:text-slate-200">{r.code}</span> },
               { key: 'name', sortable: true, label: t('report.name'), className: 'min-w-[200px]' },
               { key: 'uom', sortable: true, label: t('report.uom'), className: 'w-24 text-center' },
               { key: 'saldoAwal', sortable: true, label: t('report.opening'), className: 'w-32', align: 'right', render: (r) => n(r.saldoAwal) },

@@ -22,7 +22,7 @@ export default function StatusPage() {
       title={t('settings.statusTitle')} desc={t('settings.statusDesc')}
       path="/document-statuses" onChanged={meta.reload}
       columns={[
-        { key: 'code', sortable: true, label: t('refs.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{r.code}</span> },
+        { key: 'code', sortable: true, label: t('refs.code'), className: 'w-36 whitespace-nowrap', render: (r) => <span className="font-mono text-xs font-medium text-slate-800 dark:text-slate-200">{r.code}</span> },
         { key: 'name', sortable: true, label: t('users.name'), className: 'w-44', render: (r) => <Badge tone={r.tone}>{r.name}</Badge> },
         { key: 'flags', label: t('settings.statusFlags'), className: 'min-w-[240px]', render: (r) => <span className="flex flex-wrap gap-1">{FLAGS.filter((f) => r[f.key]).map((f) => <Badge key={f.key}>{f.label}</Badge>)}</span> },
       ]}

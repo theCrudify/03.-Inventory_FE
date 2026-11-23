@@ -57,7 +57,7 @@ export default function DocDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const meta = useMeta();
-  const { t } = usePrefs();
+  const { t, td } = usePrefs();
   const { data: doc, error, reload } = useFetch<CustomsDoc>(`/customs-docs/${id}`);
   const [tab, setTab] = useState<'umum' | 'barang' | 'pungutan' | 'ceisa'>('umum');
   const [busy, setBusy] = useState(false);
@@ -100,7 +100,7 @@ export default function DocDetailPage() {
   return (
     <>
       <PageHeader back={`/dokumen/${jenis}`} title={`${doc.type.label} · ${aju(doc.ajuNumber)}`}
-        desc={<span className="flex flex-wrap items-center gap-2">{doc.type.title}<Badge tone={st.tone} pulse={live}>{st.label}</Badge></span>}
+        desc={<span className="flex flex-wrap items-center gap-2">{td(doc.type.title)}<Badge tone={st.tone} pulse={live}>{st.label}</Badge></span>}
         actions={<>
           <Button variant="secondary" href={`/cetak/${doc.id}`}><Printer className="size-4" />{t('common.print')}</Button>
           {editable && <>
@@ -110,7 +110,7 @@ export default function DocDetailPage() {
           </>}
         </>} />
 
-      {rejection && <div className="mb-4"><ErrorBox text={`${rejection.message}. ${t('doc.rejectedHint')}`} /></div>}
+      {rejection && <div className="mb-4"><ErrorBox text={`${td(rejection.message)}. ${t('doc.rejectedHint')}`} /></div>}
 
       <Card className="mb-5 overflow-hidden">
         <Stepper doc={doc} meta={meta} />
@@ -187,7 +187,7 @@ export default function DocDetailPage() {
                   <li key={e.id} className="grid grid-cols-[auto_1fr] items-start gap-3">
                     <Badge tone={meta.status(e.status).tone}>{e.code}</Badge>
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{e.message}</div>
+                      <div className="text-sm font-medium text-slate-800 dark:text-slate-200">{td(e.message)}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">{dateTime(e.createdAt)}</div>
                       {e.payload && <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-900 p-3 font-mono text-[11px] leading-relaxed text-slate-100 dark:bg-slate-950">{JSON.stringify(e.payload, null, 2)}</pre>}
                     </div>

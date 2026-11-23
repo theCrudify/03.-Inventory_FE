@@ -109,7 +109,7 @@ export default function DocListPage() {
             rowNumberOffset={data ? (data.page - 1) * data.pageSize : 0}
             onRowClick={(r) => router.push(`/dokumen/${jenis}/${r.id}`)}
             columns={[
-              { key: 'ajuNumber', sortable: true, label: t('doc.ajuNumber'), className: 'w-60 whitespace-nowrap', render: (r) => <span className="whitespace-nowrap font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{aju(r.ajuNumber)}</span> },
+              { key: 'ajuNumber', sortable: true, label: t('doc.ajuNumber'), className: 'w-60 whitespace-nowrap', render: (r) => <span className="whitespace-nowrap font-mono text-xs font-medium text-slate-800 dark:text-slate-200">{aju(r.ajuNumber)}</span> },
               { key: 'registrationNumber', sortable: true, label: t('doc.regNumber'), className: 'w-44', render: (r) => r.registrationNumber ? <span className="font-mono text-xs font-medium">{r.registrationNumber}<span className="block text-slate-400 dark:text-slate-500 font-normal">{date(r.registrationDate)}</span></span> : <span className="text-slate-400">-</span> },
               { key: 'partnerName', sortable: true, label: meta.direction(cfg.direction).partyLabel, className: 'min-w-[200px]' },
               { key: 'totalValue', sortable: true, label: t('doc.value'), className: 'w-44 whitespace-nowrap', align: 'right', render: (r) => <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{money(r.totalValue, r.currency)}</span> },

@@ -1,6 +1,7 @@
 'use client';
-import { Globe, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { translateData } from './data-i18n';
 import { translate, type I18nKey, type Lang } from './i18n';
 
 export type Theme = 'light' | 'dark';
@@ -13,6 +14,7 @@ type PrefsCtx = {
   setLang: (l: Lang) => void;
   toggleLang: () => void;
   t: (key: I18nKey, vars?: Record<string, string | number>) => string;
+  td: (value: string) => string;
 };
 
 const Ctx = createContext<PrefsCtx | null>(null);
@@ -48,8 +50,9 @@ export function PrefsProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => setLangState(l), []);
   const toggleLang = useCallback(() => setLangState((p) => (p === 'id' ? 'en' : 'id')), []);
   const t = useCallback((key: I18nKey, vars?: Record<string, string | number>) => translate(lang, key, vars), [lang]);
+  const td = useCallback((value: string) => translateData(value, lang), [lang]);
 
-  return <Ctx.Provider value={{ theme, setTheme, toggleTheme, lang, setLang, toggleLang, t }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ theme, setTheme, toggleTheme, lang, setLang, toggleLang, t, td }}>{children}</Ctx.Provider>;
 }
 
 export function usePrefs(): PrefsCtx {
@@ -59,6 +62,7 @@ export function usePrefs(): PrefsCtx {
       theme: 'light', setTheme: () => {}, toggleTheme: () => {},
       lang: 'id', setLang: () => {}, toggleLang: () => {},
       t: (key, vars) => translate('id', key, vars),
+      td: (value) => value,
     };
   }
   return ctx;
@@ -67,18 +71,17 @@ export function usePrefs(): PrefsCtx {
 export function ThemeLangControls() {
   const { theme, toggleTheme, lang, setLang, t } = usePrefs();
   return (
-    <div className="flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/85 p-1 shadow-xs backdrop-blur-sm dark:border-slate-700/70 dark:bg-slate-900/80">
-      <Globe className="mx-1 size-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-      <div className="flex items-center gap-0.5 rounded-full bg-slate-100 p-0.5 dark:bg-slate-800/80" role="group" aria-label={t('common.language')}>
+    <div className="flex items-center gap-1.5">
+      <div className="flex h-8 items-center rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800/80" role="group" aria-label={t('common.language')}>
         {(['id', 'en'] as const).map((l) => (
           <button
             key={l}
             type="button"
             onClick={() => setLang(l)}
             aria-pressed={lang === l}
-            className={`min-w-8 rounded-full px-2 py-1 text-xs font-semibold uppercase transition-all duration-150 cursor-pointer ${
+            className={`h-7 min-w-8 rounded-md px-2 text-[11px] font-semibold uppercase tracking-wide transition-all ${
               lang === l
-                ? 'bg-white text-teal-800 shadow-xs dark:bg-teal-700 dark:text-teal-50'
+                ? 'bg-white text-slate-900 shadow-[0_1px_2px_rgb(16_24_40/0.08)] dark:bg-slate-700 dark:text-white'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
             }`}
           >
@@ -86,15 +89,14 @@ export function ThemeLangControls() {
           </button>
         ))}
       </div>
-      <span className="mx-0.5 h-4 w-px bg-slate-200 dark:bg-slate-700" aria-hidden="true" />
       <button
         type="button"
         onClick={toggleTheme}
         title={theme === 'dark' ? t('common.lightMode') : t('common.darkMode')}
         aria-label={theme === 'dark' ? t('common.lightMode') : t('common.darkMode')}
-        className="grid size-8 place-items-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-teal-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+        className="grid size-8 place-items-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
       >
-        <Sun className="hidden size-4 text-amber-400 dark:block" aria-hidden="true" />
+        <Sun className="hidden size-4 dark:block" aria-hidden="true" />
         <Moon className="size-4 dark:hidden" aria-hidden="true" />
       </button>
     </div>
